@@ -1,226 +1,303 @@
-#include <Eigen/Core>
-#include <array>
-#include <cmath>
+#include <fstream>
 #include <iostream>
+#include <Eigen/Core>
 #include <Eigen/Dense>
-#include <map>
-
-// double fastSigmoidModified(double x) {
-//     return x/(2 + 2 * abs(x)) + 0.5;
-// }
-
-// double fastSigmoidModifiedDerivative(double x) {
-//     return x/(2 + 2 * abs(x)) + 0.5;
-// }
+#include <sstream>
+#include <random>
+#include <stdexcept>
+#include <cmath>
 
 
-// Это не быстрая сигмоида, а обычная, но мне лень переписывать названия функций
-// double fastSigmoidModified(double x) {
-//     return 1/(1 + exp(-x));
-// }
+struct Sigmoid {
+    double evaluate(const double x) const
+    {
+        if (x > 10) { return 1; }
 
-// double fastSigmoidModifiedDerivative(double x) {
-//     return exp(-x)/pow(1 + exp(-x), 2);
-// }
+        if (x < -10) { return 0; }
 
-
-// Это не сигмоиды но мне лень переписывать
-double fastSigmoidModified(double x) {
-    if (x < 0) { return 0; }
-
-    return x;
-}
-
-double fastSigmoidModifiedDerivative(double x) {
-    if (x < 0) { return 0; }
-
-    return 1;
-}
-
-
-Eigen::MatrixXd makeDiagonal(const Eigen::VectorXd& v) {
-    Eigen::MatrixXd m(v.rows(), v.rows());
-
-    for (int i = 0; i < v.rows(); ++i) {
-        m.col(i)[i] = v[i];
+        return 1/(1 + exp(-x));
     }
 
-    return m;
-}
+    double derivative(const double x) const
+    {
+        if (x > 10) { return 0; }
 
+        if (x < -10) { return 0; }
 
-double gradient_descent_step = 0.01;
-
-
-class Layer {
-private:
-    // Eigen::MatrixXd A;
-    // Eigen::VectorXd b;
-    int in_size;
-    int out_size;
-    // std::pair<Eigen::MatrixXd, Eigen::VectorXd> theta;
-    Eigen::MatrixXd A;
-    Eigen::VectorXd b;
-
-public:
-    Layer(int in_size, int out_size) :
-        in_size(in_size),
-        out_size(out_size),
-        // theta(std::pair<Eigen::MatrixXd, Eigen::VectorXd>(Eigen::MatrixXd::Random(out_size, in_size), Eigen::VectorXd::Random(out_size))) {}
-        A(Eigen::MatrixXd::Random(out_size, in_size)),
-        b(Eigen::VectorXd::Random(out_size)) {}
-
-    Eigen::VectorXd linear(const Eigen::VectorXd& x) const {
-        if (x.rows() != in_size) {
-            // std::cout << x << "AAAAAAAA"<< '\n';
-            // std::cout << A << '\n';
-            throw std::runtime_error("Wrong dimension in input."); }
-
-        return A * x + b;
+        return exp(-x)/pow(1 + exp(-x), 2);
     }
 
-    Eigen::VectorXd nonLinear(const Eigen::VectorXd& x, double(*func_ptr)(double)) const {
+    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const
+    {
         Eigen::VectorXd z = x;
 
-        for (double& i : z) {
-            i = func_ptr(i);
-        }
+        for (double& i : z) { i = evaluate(i); }
 
         return z;
     }
 
-    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const {
-        return nonLinear(linear(x), &fastSigmoidModified);
-    }
+    Eigen::MatrixXd derivative(const Eigen::VectorXd& x) const
+    {
+        Eigen::MatrixXd z(x.rows(), x.rows());
 
-    Eigen::MatrixXd grad_A(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const {
-        return makeDiagonal(nonLinear(linear(x), &fastSigmoidModifiedDerivative)) * u.transpose() * x.transpose();
-    }
+        for (int i = 0; i < x.rows(); ++i) {
+            z.row(i)[i] = derivative(x[i]);
+        }
 
-    Eigen::VectorXd grad_b(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const {
-        return makeDiagonal(nonLinear(linear(x), &fastSigmoidModifiedDerivative)) * u.transpose();
-    }
-
-    Eigen::RowVectorXd grad_x(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const {
-        return u * nonLinear(linear(x), &fastSigmoidModifiedDerivative) * A;
-    }
-
-    void gradientDescent(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) {
-        A -= grad_A(x, u) * gradient_descent_step;
-        b -= grad_b(x, u) * gradient_descent_step;
-    }
-
-    Eigen::RowVectorXd pullBackU(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const {
-        // std::cout << x;
-        return grad_x(x, u);
-    }
-
-    std::pair<Eigen::MatrixXd, Eigen::VectorXd> getTheta() const {
-        return std::pair<Eigen::MatrixXd, Eigen::VectorXd>(A, b);
+        return z;
     }
 };
 
-Eigen::VectorXd refFunction(Eigen::VectorXd& x) {
-    double s = 0;
 
-    for (int i = 0; i < 10; ++i) {
-        s += pow(-x[i], i / 2);
+double MODULO = 1299827;
+
+struct Relu {
+    double evaluate(const double x) const
+    {
+        if (x < 0) { return 0; }
+
+        return std::fmod(x, MODULO);
     }
 
-    Eigen::VectorXd v(1);
+    double derivative(const double x) const
+    {
+        if (x < 0) { return 0; }
 
-    v << s;
+        return 1;
+    }
+
+    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const
+    {
+        Eigen::VectorXd z = x;
+
+        for (double& i : z) { i = evaluate(i); }
+
+        return z;
+    }
+
+    Eigen::MatrixXd derivative(const Eigen::VectorXd& x) const
+    {
+        Eigen::MatrixXd z(x.rows(), x.rows());
+
+        for (int i = 0; i < x.rows(); ++i) {
+            z.row(i)[i] = derivative(x[i]);
+        }
+
+        return z;
+    }
+};
+
+
+struct Compare {
+    double evaluate(const Eigen::VectorXd& z, const Eigen::VectorXd& y) const
+    {
+        return pow((z - y).norm(), 2);
+    }
+
+    Eigen::RowVectorXd derivative(const Eigen::VectorXd& z, const Eigen::VectorXd& y) const
+    {
+        Eigen::RowVectorXd result(z.rows());
+
+        for (int i = 0; i < z.rows(); ++i) {
+            result[i] = 2 * (y[i] - z[i]);
+        }
+
+        return result;
+    }
+};
+
+
+double GRADIENT_STEP = 0.001;
+
+class Block {
+private:
+    int in_dim;
+    int out_dim;
+    Eigen::MatrixXd A;
+    Eigen::VectorXd b;
+    Relu sigma;
+
+public:
+    Block(int in_dim, int out_dim, std::stringstream& theta) :
+        in_dim(in_dim),
+        out_dim(out_dim),
+        A(Eigen::MatrixXd(out_dim, in_dim)),
+        b(Eigen::VectorXd(out_dim))
+    {
+        for (int j = 0; j < in_dim; ++j) {
+            for (int i = 0; i < out_dim; ++i) {
+                theta >> A.col(j)[i];
+            }
+        }
+
+        for (int i = 0; i < out_dim; ++i) {
+            theta >> b[i];
+        }
+    }
+
+
+    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const
+    {
+        return sigma.evaluate(A * x + b);
+    }
+
+
+    Eigen::MatrixXd grad_A(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const
+    {
+        return sigma.derivative(A * x + b) * u.transpose() * x.transpose();
+    }
+
+    Eigen::VectorXd grad_b(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const
+    {
+        return sigma.derivative(A * x + b) * u.transpose();
+    }
+
+
+    void gradientDescent(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u)
+    {
+        A -= grad_A(x, u) * GRADIENT_STEP;
+        b -= grad_b(x, u) * GRADIENT_STEP;
+    }
+
+
+    Eigen::RowVectorXd propogateBack(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const
+    {
+        return u * sigma.derivative(A * x + b) * A;
+    }
+};
+
+
+class BlackBox {
+private:
+    int blocks_cnt;
+    std::vector<Block*> blocks;
+    Compare compare;
+
+public:
+    BlackBox(int blocks_cnt, std::ifstream& file) :
+        blocks_cnt(blocks_cnt),
+        blocks(std::vector<Block*>(blocks_cnt))
+    {
+        int in_dim;
+        int out_dim;
+        std::string line;
+        std::stringstream ss;
+
+        for (int i = 0; i < blocks_cnt; ++i) {
+            getline(file, line);
+            ss = std::stringstream(line);
+            ss >> in_dim >> out_dim;
+
+            getline(file, line);
+            ss = std::stringstream(line);
+            blocks[i] = new Block(in_dim, out_dim, ss);
+        }
+    }
+
+
+    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const
+    {
+        Eigen::VectorXd result = x;
+
+        for (int i = 0; i < blocks_cnt; ++i) {
+            result = blocks[i]->evaluate(result);
+        }
+
+        return result;
+    }
+
+    Eigen::VectorXd evaluateAt(const Eigen::VectorXd& x, int at) const
+    {
+        if (at < 0 || at >= blocks_cnt) { throw std::runtime_error("There is no block at such index!"); }
+
+        Eigen::VectorXd result = x;
+
+        for (int i = 0; i <= at; ++i) {
+            result = blocks[i]->evaluate(result);
+        }
+
+        return result;
+    }
+
+    void tuning(const Eigen::VectorXd& x, const Eigen::VectorXd& y)
+    {
+        Eigen::RowVectorXd u = compare.derivative(evaluate(x), y);
+        Eigen::RowVectorXd u_next;
+
+        for (int i = blocks_cnt - 1; i > 0; --i) {
+            u_next = blocks[i]->propogateBack(evaluateAt(x, i - 1), u);
+
+            blocks[i]->gradientDescent(evaluateAt(x, i - 1), u);
+            u = u_next;
+        }
+
+        blocks[0]->gradientDescent(x, u);
+    }
+};
+
+
+Eigen::VectorXd refFunction(Eigen::VectorXd& x) {  // f(x, y) = (y, x)
+    Eigen::VectorXd v(2);
+
+    v << x[1], x[0];
 
     return v;
 }
-
-double distance(const Eigen::VectorXd& z, const Eigen::VectorXd& y) {
-    double dist = 0;
-
-    for (int i = 0; i < y.rows(); ++i) {
-        dist += pow(y[i] - z[i], 2);
-    }
-
-    return dist;
-}
-
-Eigen::RowVectorXd distanceRow(const Eigen::VectorXd& z, const Eigen::VectorXd& y) {
-    Eigen::RowVectorXd v(z.rows());
-
-    for (int i = 0; i < z.rows(); ++i) {
-        v << 2 * (z[i] - y[i]);
-    }
-
-    return v;
-}
-
-Eigen::VectorXd NeuralNet(std::array<Layer, 2>& Net, Eigen::VectorXd& x) {
-    return Net[1].evaluate(Net[0].evaluate(x));
-}
-
-double fine(std::array<Layer, 2>& Net, std::array<Eigen::VectorXd, 1000>& sample) {
-    double sum = 0;
-
-    for (int i = 0; i < 1000; ++i) {
-        sum += distance(NeuralNet(Net, sample[i]), refFunction(sample[i]));
-    }
-
-    return sum / 1000;
-}
-
 
 int main() {
-    Layer l1(7, 3);
-    Eigen::VectorXd v(7);
-    v << 1, 2, 3, 4, 5, 6, 7;
+    std::ifstream file("theta.txt");
 
+    if (!file.is_open()) {
+        std::cerr << "Error: Unable to open file!" << '\n';
+        return 1;
+    }
 
+    BlackBox bb(2, file);
 
-    std::array<Eigen::VectorXd, 1000> sample;
+    const size_t sample_size = 1;
+    std::array<Eigen::VectorXd, sample_size> sample;
+
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0.5, 1);
 
     for (Eigen::VectorXd& i : sample) {
-        i = Eigen::VectorXd::Random(10) * 100;
+        i = Eigen::VectorXd(2);
+        // i[0] = distribution(generator);
+        // i[1] = distribution(generator);
+        i[0] = 3;
+        i[1] = 4;
     }
 
-    std::array<Layer, 2> Net{Layer(10, 100), Layer(100, 1)};
 
-    Eigen::VectorXd inp = Eigen::VectorXd::Random(10);
+    std::cout << "--- Before train: ---\n\n";
+    Eigen::VectorXd input = Eigen::VectorXd(2);
 
-    while (!inp.isZero()) {
-        for (int _ = 0; _ < 10; ++_) { std::cin >> inp[_]; }
+    do {
+        std::cout << "Input vector in RR^2: ";
+        for (int i = 0; i < 2; ++i) { std::cin >> input[i]; }
 
-        std::cout << "Ref: " << refFunction(inp) << '\n';
-        std::cout << "NNet: " << NeuralNet(Net, inp) << '\n' << '\n';
-    }
+        std::cout << "\nRef:\n" << refFunction(input) << '\n';
+        std::cout << "BBox:\n" << bb.evaluate(input) << '\n' << '\n';
+    } while (!input.isZero());
 
-    for (int iterations = 0; iterations < 1; ++iterations) {
-        std::cout << "----- Iteration " << iterations << " -----\n";
-        Eigen::RowVectorXd sum_u(Eigen::RowVectorXd::Zero(1));
 
+    for (int iterations = 0; iterations < 100000; ++iterations) {
+        // std::cout << "- Iteration " << iterations << " -\n";
         for (Eigen::VectorXd& i : sample) {
-            sum_u += distanceRow(NeuralNet(Net, i), refFunction(i));
-        }
-
-        Eigen::RowVectorXd average_u = sum_u / 1000;
-
-        for (Eigen::VectorXd& i : sample) {
-            Eigen::RowVectorXd u_next = Net[1].pullBackU(Net[0].evaluate(i), average_u);
-            Net[1].gradientDescent(Net[0].evaluate(i), average_u);
-            Net[0].gradientDescent(i, u_next);
+            bb.tuning(i, refFunction(i));
         }
     }
 
-    std::cout << "After train: \n";
+    std::cout << "--- After train: ---\n\n";
+    input = Eigen::VectorXd(2);
 
-    inp = Eigen::VectorXd::Random(10);
-    while (!inp.isZero()) {
-        for (int _ = 0; _ < 10; ++_) { std::cin >> inp[_]; }
+    do {
+        std::cout << "Input vector in RR^2: ";
+        for (int i = 0; i < 2; ++i) { std::cin >> input[i]; }
 
-        std::cout << "Ref: " << refFunction(inp) << '\n';
-        std::cout << "NNet: " << NeuralNet(Net, inp) << '\n' << '\n';
-    }
-
-    // std::cout << l1.getTheta().first << '\n' << '\n' << l1.getTheta().second << '\n' << '\n' << l1.evaluate(v) << '\n';
+        std::cout << "\nRef:\n" << refFunction(input) << '\n';
+        std::cout << "BBox:\n" << bb.evaluate(input) << '\n' << '\n';
+    } while (!input.isZero());
 
 
     return 0;

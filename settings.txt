@@ -1,0 +1,7 @@
+6
+784 500 sigmoid
+500 100 sigmoid
+100 100 relu
+100 200 sigmoid
+200 100 sigmoid
+100 10 sigmoid

@@ -51,7 +51,7 @@ Eigen::VectorXd Block::grad_b(const Eigen::VectorXd& x, const Eigen::RowVectorXd
 void Block::gradientDescent(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u)
 {
     A -= grad_A(x, u) * GRADIENT_STEP;
-    b =- grad_b(x, u) * GRADIENT_STEP;
+    b -= grad_b(x, u) * GRADIENT_STEP;
 }
 
 Eigen::RowVectorXd Block::propogateBack(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const

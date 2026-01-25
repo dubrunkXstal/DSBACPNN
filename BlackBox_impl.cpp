@@ -54,6 +54,20 @@ void Block::gradientDescent(const Eigen::VectorXd& x, const Eigen::RowVectorXd& 
     b -= grad_b(x, u) * GRADIENT_STEP;
 }
 
+void Block::gradientDescent(const Eigen::MatrixXd& x_batch, const Eigen::MatrixXd& u_batch, size_t batch_size)
+{
+    Eigen::MatrixXd sum_grad_A = Eigen::MatrixXd::Zero(u_batch.cols(), x_batch.rows());
+    Eigen::VectorXd sum_grad_b = Eigen::VectorXd::Zero(u_batch.cols());
+
+    for (int i = 0; i < batch_size; ++i) {
+        sum_grad_A += grad_A(x_batch.col(i), u_batch.row(i));
+        sum_grad_b += grad_b(x_batch.col(i), u_batch.row(i));
+    }
+
+    A -= sum_grad_A / batch_size * GRADIENT_STEP;
+    b -= sum_grad_b / batch_size * GRADIENT_STEP;
+}
+
 Eigen::RowVectorXd Block::propogateBack(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const
 {
     return u * sigma->derivative(A * x + b).asDiagonal() * A;
@@ -117,6 +131,29 @@ void BlackBox::tuning(const Eigen::VectorXd& x, const Eigen::VectorXd& y)
     }
 
     blocks[0]->gradientDescent(x, u);
+}
+
+
+void BlackBox::tuning(const Eigen::MatrixXd& x_batch, const Eigen::MatrixXd& y_batch, size_t batch_size)
+{
+    std::vector<std::unique_ptr<Eigen::MatrixXd> > remember_output;  // dim x batch_size
+    remember_output.emplace_back(std::make_unique<Eigen::MatrixXd>(blocks[0]->evaluate(x_batch)));
+
+    for (int i = 1; i < blocks_cnt; ++i) {
+        remember_output.emplace_back(std::make_unique<Eigen::MatrixXd>(blocks[i]->evaluate(*remember_output[i - 1])));
+    }
+
+    Eigen::MatrixXd u = loss.gradient(*remember_output[blocks_cnt - 1], y_batch);  // batch_size x dim
+    Eigen::MatrixXd u_next;
+    Eigen::RowVectorXd average = Eigen::RowVectorXd::Zero(x_batch.rows());
+
+    for (int i = 0; i < batch_size; ++i) {
+        average += u.row(i);
+    }
+
+    average /= batch_size;
+
+
 }
 
 #endif  // BLACKBOX_IMPL_CPP

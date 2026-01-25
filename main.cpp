@@ -89,9 +89,9 @@ int main() {
         std::getline(ss, integer, ',');
 
         Eigen::VectorXd y = Eigen::VectorXd::Zero(10);
-        y[std::stoi(integer)] = 1;
-        std::cout << "Referen: " << integer << '\n';
         int y_int = std::stoi(integer);
+        y[y_int] = 1;
+        std::cout << "Referen: " << integer << '\n';
 
         Eigen::VectorXd x(784);
         for (double& i : x) {

@@ -15,23 +15,11 @@ Sigmoid::~Sigmoid() = default;
 
 double Sigmoid::evaluate(const double x) const
 {
-    if (isnan(x)) { return 0; }
-
-    if (x > 14) { return 1; }
-
-    if (x < -20) { return 0; }
-
     return 1/(1 + exp(-x));
 }
 
 double Sigmoid::derivative(const double x) const
 {
-    if (isnan(x)) { return 0; }
-
-    if (x > 14) { return 0; }
-
-    if (x < -20) { return 0; }
-
     return exp(-x)/pow(1 + exp(-x), 2);
 }
 
@@ -65,14 +53,14 @@ Relu::~Relu() = default;
 
 double Relu::evaluate(const double x) const
 {
-    if (x < 0 || isnan(x)) { return 0; }
+    if (x < 0) { return 0; }
 
     return x;
 }
 
 double Relu::derivative(const double x) const
 {
-    if (x < 0 || isnan(x)) { return 0; }
+    if (x < 0) { return 0; }
 
     return 1;
 }

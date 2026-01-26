@@ -54,7 +54,7 @@ public:
 
     void tuning(const Eigen::VectorXd& x, const Eigen::VectorXd& y);
 
-    void tuning(const Eigen::MatrixXd& x_batch, const Eigen::MatrixXd& y_batch, size_t batch_size);
+    // void tuning(const Eigen::MatrixXd& x_batch, const Eigen::MatrixXd& y_batch, size_t batch_size);
 };
 
 #include "BlackBox_impl.cpp"

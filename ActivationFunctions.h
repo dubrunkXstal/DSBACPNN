@@ -1,15 +1,13 @@
 #ifndef ACTIVATIONFUNCTIONS_H
 #define ACTIVATIONFUNCTIONS_H
 
+#include "AnyMovable.h"
 #include "eigen/Eigen/Core"
 #include "eigen/Eigen/Dense"
 
-#include "AnyMovable.h"
-
-
-template<class TBase>
+template <class TBase>
 class IAny : public TBase {
-public:
+   public:
     virtual double evaluate(const double x) const = 0;
 
     virtual double derivative(const double x) const = 0;
@@ -19,37 +17,30 @@ public:
     virtual Eigen::VectorXd derivative(const Eigen::VectorXd& x) const = 0;
 };
 
-
-template<class TBase, class TObject>
+template <class TBase, class TObject>
 class CAnyImpl : public TBase {
     using CBase = TBase;
-public:
+
+   public:
     using CBase::CBase;
 
-    double evaluate(const double x) const override {
-        return CBase::Object().evaluate(x);
-    }
+    double evaluate(const double x) const override { return CBase::Object().evaluate(x); }
 
-    double derivative(const double x) const override {
-        return CBase::Object().derivative(x);
-    }
+    double derivative(const double x) const override { return CBase::Object().derivative(x); }
 
-    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const override {
-        return CBase::Object().evaluate(x);
-    }
+    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const override { return CBase::Object().evaluate(x); }
 
     Eigen::VectorXd derivative(const Eigen::VectorXd& x) const override {
         return CBase::Object().derivative(x);
     }
 };
 
-
 class CAny : public NSLibrary::CAnyMovable<IAny, CAnyImpl> {
     using CBase = CAnyMovable<IAny, CAnyImpl>;
-public:
+
+   public:
     using CBase::CBase;
 };
-
 
 struct Sigmoid {
     Sigmoid();
@@ -64,7 +55,6 @@ struct Sigmoid {
 
     ~Sigmoid();
 
-
     double evaluate(const double x) const;
 
     double derivative(const double x) const;
@@ -73,7 +63,6 @@ struct Sigmoid {
 
     Eigen::VectorXd derivative(const Eigen::VectorXd& x) const;
 };
-
 
 struct Relu {
     Relu();
@@ -87,7 +76,6 @@ struct Relu {
     Relu& operator=(Relu&& other) noexcept;
 
     ~Relu();
-
 
     double evaluate(const double x) const;
 

@@ -1,15 +1,14 @@
 #include <cassert>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <memory>
-#include <string>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
 
+#include "BlackBox.h"
 #include "eigen/Eigen/Core"
 #include "eigen/Eigen/Dense"
-#include "BlackBox.h"
-
 
 int main() {
     std::ifstream settings("settings.txt");
@@ -66,13 +65,14 @@ int main() {
 
     std::cout << "--- after tuning ---\n";
 
-
     std::string integer;
     std::string go;
     int success_cnt = 0;
 
     while (mnist_test.good() && std::getline(mnist_test, line)) {
-        if (go != "go") { std::cin >> go; }
+        if (go != "go") {
+            std::cin >> go;
+        }
 
         ss = std::stringstream(line);
         std::getline(ss, integer, ',');
@@ -88,16 +88,20 @@ int main() {
             i = std::stoi(integer) / 255.0;
         }
 
-         Eigen::VectorXd res = bb.evaluate(x);
+        Eigen::VectorXd res = bb.evaluate(x);
 
-         int ind_max = 0;
-         for (int i = 1; i < 10; ++i) {
-             if (res[i] > res[ind_max]) { ind_max = i; }
-         }
+        int ind_max = 0;
+        for (int i = 1; i < 10; ++i) {
+            if (res[i] > res[ind_max]) {
+                ind_max = i;
+            }
+        }
 
-         std::cout << "Predict: " << ind_max << "\n----------\n";
+        std::cout << "Predict: " << ind_max << "\n----------\n";
 
-         if (ind_max == y_int) { ++success_cnt; }
+        if (ind_max == y_int) {
+            ++success_cnt;
+        }
     }
 
     std::cout << "Success rate: " << success_cnt / 100.0 << "%\n";

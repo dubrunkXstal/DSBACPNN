@@ -1,33 +1,25 @@
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include "EigenRand/EigenRand/EigenRand"
 #include <memory>
 #include <string>
 #include <cstdio>
+
+#include "eigen/Eigen/Core"
+#include "eigen/Eigen/Dense"
 #include "BlackBox.h"
 
 
 int main() {
     std::ifstream settings("settings.txt");
-    if (!settings.is_open()) {
-        std::cerr << "Error: Unable to open settings.txt!" << '\n';
-        return 1;
-    }
+    assert(settings.is_open());
 
     std::ifstream mnist_test("MNIST/mnist_test.csv");
-    if (!mnist_test.is_open()) {
-        std::cerr << "Error: Unable to open mnist_test.txt!" << '\n';
-        return 1;
-    }
+    assert(mnist_test.is_open());
     {
         std::ifstream mnist_sample("MNIST/mnist_train.csv");
-        if (!mnist_sample.is_open()) {
-            std::cerr << "Error: Unable to open mnist_train.txt!" << '\n';
-            return 1;
-        }
+        assert(mnist_sample.is_open());
         mnist_sample.close();
     }
 
@@ -35,19 +27,16 @@ int main() {
     std::getline(settings, line);
     std::stringstream ss(line);
 
-    size_t blocks_cnt;
+    int blocks_cnt;
     ss >> blocks_cnt;
     BlackBox bb(blocks_cnt, settings);
 
-    size_t epochs_cnt = 8;
-    size_t sample_size = 60000;  // Сам MNIST по размеру - 60000.
+    int epochs_cnt = 3;
+    int sample_size = 60000;  // Сам MNIST по размеру - 60000.
 
     for (int e = 1; e <= epochs_cnt; ++e) {
         std::ifstream mnist_sample("MNIST/mnist_train.csv");
-        if (!mnist_sample.is_open()) {
-            std::cerr << "Error: Unable to open mnist_train.txt!" << '\n';
-            return 1;
-        }
+        assert(mnist_sample.is_open());
 
         std::string line;
         std::stringstream ss;
@@ -80,7 +69,7 @@ int main() {
 
     std::string integer;
     std::string go;
-    size_t success_cnt = 0;
+    int success_cnt = 0;
 
     while (mnist_test.good() && std::getline(mnist_test, line)) {
         if (go != "go") { std::cin >> go; }

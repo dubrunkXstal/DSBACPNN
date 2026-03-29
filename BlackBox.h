@@ -1,22 +1,20 @@
 #ifndef BLACKBOX_H
 #define BLACKBOX_H
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include "EigenRand/EigenRand/EigenRand"
-#include <memory>
 #include <cstdio>
 #include <fstream>
-#include "ActivationFunctions.h"
+#include <memory>
 
+#include "ActivationFunctions.h"
+#include "eigen/Eigen/Core"
+#include "eigen/Eigen/Dense"
 
 class LossFunction {
-public:
+   public:
     double distance(const Eigen::VectorXd& z, const Eigen::VectorXd& y) const;
 
     Eigen::RowVectorXd gradient(const Eigen::VectorXd& z, const Eigen::VectorXd& y) const;
 };
-
 
 class Block {
     size_t in_dim;
@@ -25,9 +23,8 @@ class Block {
     Eigen::VectorXd b;
     CAny sigma;
 
-public:
+   public:
     Block(size_t in_dim, size_t out_dim, CAny&& sigma);
-
 
     Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const;
 
@@ -40,15 +37,13 @@ public:
     Eigen::RowVectorXd propogateBack(const Eigen::VectorXd& x, const Eigen::RowVectorXd& u) const;
 };
 
-
 class BlackBox {
     size_t blocks_cnt;
     std::vector<std::unique_ptr<Block> > blocks;
     LossFunction loss;
 
-public:
+   public:
     BlackBox(size_t blocks_cnt, std::ifstream& settings);
-
 
     Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const;
 
@@ -56,7 +51,5 @@ public:
 
     // void tuning(const Eigen::MatrixXd& x_batch, const Eigen::MatrixXd& y_batch, size_t batch_size);
 };
-
-#include "BlackBox_impl.cpp"
 
 #endif  // BLACKBOX_H

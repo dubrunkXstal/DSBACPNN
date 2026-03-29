@@ -1,15 +1,10 @@
 cmake_minimum_required(VERSION 3.31.5)
 project(NeuralNetwork VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# configure_file(${CMAKE_SOURCE_DIR}/... ${CMAKE_BINARY_DIR}/... COPYONLY)
+add_executable(NeuralNetwork main.cpp BlackBox_impl.cpp ActivationFunctions_impl.cpp)
 
-find_package(Eigen3 REQUIRED NO_MODULE)
-
-add_executable(NeuralNetwork main.cpp)
-target_link_libraries(NeuralNetwork PRIVATE Eigen3::Eigen)
-
+# target_compile_options(NeuralNetwork PRIVATE -std=c++20 -Wall -Wextra -Werror)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

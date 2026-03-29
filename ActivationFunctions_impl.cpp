@@ -1,6 +1,3 @@
-#ifndef ANYMOVABLE_IMPL_CPP
-#define ANYMOVABLE_IMPL_CPP
-
 #include "ActivationFunctions.h"
 
 
@@ -82,5 +79,3 @@ Eigen::VectorXd Relu::derivative(const Eigen::VectorXd& x) const
 
     return z;
 }
-
-#endif  // ANYMOVABLE_IMPL_CPP

@@ -1,8 +1,9 @@
 #ifndef ACTIVATIONFUNCTIONS_H
 #define ACTIVATIONFUNCTIONS_H
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include "eigen/Eigen/Core"
+#include "eigen/Eigen/Dense"
+
 #include "AnyMovable.h"
 
 
@@ -96,7 +97,5 @@ struct Relu {
 
     Eigen::VectorXd derivative(const Eigen::VectorXd& x) const;
 };
-
-#include "ActivationFunctions_impl.cpp"
 
 #endif  // ACTIVATIONFUNCTIONS_H

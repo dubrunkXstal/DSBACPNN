@@ -19,8 +19,8 @@ Eigen::RowVectorXd LossFunction::gradient(const Eigen::VectorXd& z, const Eigen:
 Block::Block(size_t in_dim, size_t out_dim, CAny&& sigma)
     : in_dim(in_dim),
       out_dim(out_dim),
-      A(Eigen::MatrixXd::Zero(out_dim, in_dim)),
-      b(Eigen::MatrixXd::Zero(out_dim, 1)),
+      A(Eigen::MatrixXd::Random(out_dim, in_dim)),
+      b(Eigen::MatrixXd::Random(out_dim, 1)),
       sigma(std::move(sigma)) {}
 
 Eigen::VectorXd Block::evaluate(const Eigen::VectorXd& x) const { return sigma->evaluate(A * x + b); }

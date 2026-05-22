@@ -30,7 +30,9 @@ class CAnyImpl : public TBase {
 
     Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const override { return CBase::Object().evaluate(x); }
 
-    Eigen::VectorXd derivative(const Eigen::VectorXd& x) const override { return CBase::Object().derivative(x); }
+    Eigen::VectorXd derivative(const Eigen::VectorXd& x) const override {
+        return CBase::Object().derivative(x);
+    }
 };
 
 class CAny : public NSLibrary::CAnyMovable<IAny, CAnyImpl> {
@@ -83,7 +85,5 @@ struct Relu {
 
     Eigen::VectorXd derivative(const Eigen::VectorXd& x) const;
 };
-
-#include "ActivationFunctions_impl.cpp"
 
 #endif  // ACTIVATIONFUNCTIONS_H

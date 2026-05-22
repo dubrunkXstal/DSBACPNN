@@ -43,13 +43,13 @@ class BlackBox {
     LossFunction loss;
 
    public:
-    BlackBox(std::ifstream& settings);
+    BlackBox(size_t blocks_cnt, std::ifstream& settings);
 
     Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const;
 
     void tuning(const Eigen::VectorXd& x, const Eigen::VectorXd& y);
-};
 
-#include "BlackBox_impl.cpp"
+    // void tuning(const Eigen::MatrixXd& x_batch, const Eigen::MatrixXd& y_batch, size_t batch_size);
+};
 
 #endif  // BLACKBOX_H

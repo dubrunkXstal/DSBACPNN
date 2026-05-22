@@ -10,10 +10,6 @@
 #include "eigen/Eigen/Core"
 #include "eigen/Eigen/Dense"
 
-/*
-Тест на MNIST.
-*/
-
 int main() {
     std::ifstream settings("config.txt");
     assert(settings.is_open());
@@ -27,9 +23,12 @@ int main() {
     }
 
     std::string line;
-    std::stringstream ss;
+    std::getline(settings, line);
+    std::stringstream ss(line);
 
-    BlackBox bb(settings);
+    int blocks_cnt;
+    ss >> blocks_cnt;
+    BlackBox bb(blocks_cnt, settings);
 
     int epochs_cnt = 3;
     int sample_size = 60000;  // Сам MNIST по размеру - 60000.
@@ -67,9 +66,14 @@ int main() {
     std::cout << "--- after tuning ---\n";
 
     std::string integer;
+    std::string go;
     int success_cnt = 0;
 
     while (mnist_test.good() && std::getline(mnist_test, line)) {
+        if (go != "go") {
+            std::cin >> go;
+        }
+
         ss = std::stringstream(line);
         std::getline(ss, integer, ',');
 

@@ -1,5 +1,3 @@
-#include "ActivationFunctions.h"
-
 Sigmoid::Sigmoid() = default;
 
 Sigmoid::Sigmoid(Sigmoid&& other) noexcept = default;

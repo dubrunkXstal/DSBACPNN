@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <memory>
+#include <vector>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -136,12 +137,12 @@ inline void BlackBox::tuning(const Eigen::VectorXd& x, const Eigen::VectorXd& y)
             std::make_unique<Eigen::VectorXd>(blocks[i]->evaluate(*remember_output[i - 1])));
     }
 
-    Eigen::RowVectorXd u = loss.gradient(*remember_output[blocks_cnt - 1], y);
+    Eigen::RowVectorXd u = loss.gradient(*(remember_output[blocks_cnt - 1]), y);
     Eigen::RowVectorXd u_next;
 
     for (int i = blocks_cnt - 1; i > 0; --i) {
-        u_next = blocks[i]->propogateBack(*remember_output[i - 1], u);
-        blocks[i]->gradientDescent(*remember_output[i - 1], u);
+        u_next = blocks[i]->propogateBack(*(remember_output[i - 1]), u);
+        blocks[i]->gradientDescent(*(remember_output[i - 1]), u);
         u = u_next;
     }
 

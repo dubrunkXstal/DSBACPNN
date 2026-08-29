@@ -1,5 +1,4 @@
-#ifndef ACTIVATIONFUNCTIONS_H
-#define ACTIVATIONFUNCTIONS_H
+#pragma once
 
 #include "AnyMovable.h"
 #include "eigen/Eigen/Core"
@@ -85,5 +84,3 @@ struct Relu {
 };
 
 #include "ActivationFunctions_impl.cpp"
-
-#endif  // ACTIVATIONFUNCTIONS_H

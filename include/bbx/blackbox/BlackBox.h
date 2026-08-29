@@ -1,5 +1,4 @@
-#ifndef BLACKBOX_H
-#define BLACKBOX_H
+#pragma once
 
 #include <cstdio>
 #include <fstream>
@@ -51,5 +50,3 @@ class BlackBox {
 };
 
 #include "BlackBox_impl.cpp"
-
-#endif  // BLACKBOX_H

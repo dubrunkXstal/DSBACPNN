@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <bbx/types.hpp>
 #include "AnyMovable.h"
 
 namespace bbx {
@@ -14,9 +15,9 @@ class IAny : public TBase {
 
     virtual double derivative(const double x) const = 0;
 
-    virtual Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const = 0;
+    virtual Vector evaluate(const Vector& x) const = 0;
 
-    virtual Eigen::VectorXd derivative(const Eigen::VectorXd& x) const = 0;
+    virtual Vector derivative(const Vector& x) const = 0;
 };
 
 template <class TBase, class TObject>
@@ -36,12 +37,12 @@ class CAnyImpl : public TBase {
         return CBase::Object().derivative(x);
     }
 
-    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const override
+    Vector evaluate(const Vector& x) const override
     {
         return CBase::Object().evaluate(x);
     }
 
-    Eigen::VectorXd derivative(const Eigen::VectorXd& x) const override
+    Vector derivative(const Vector& x) const override
     {
         return CBase::Object().derivative(x);
     }
@@ -77,9 +78,9 @@ struct Sigmoid {
         return exp(-x) / pow(1 + exp(-x), 2);
     }
 
-    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const;
+    Vector evaluate(const Vector& x) const;
 
-    Eigen::VectorXd derivative(const Eigen::VectorXd& x) const;
+    Vector derivative(const Vector& x) const;
 };
 
 struct Relu {
@@ -113,16 +114,16 @@ struct Relu {
         return 1;
     }
 
-    Eigen::VectorXd evaluate(const Eigen::VectorXd& x) const;
+    Vector evaluate(const Vector& x) const;
 
-    Eigen::VectorXd derivative(const Eigen::VectorXd& x) const;
+    Vector derivative(const Vector& x) const;
 };
 
 
 // Implementation
 
-inline Eigen::VectorXd Sigmoid::evaluate(const Eigen::VectorXd& x) const {
-    Eigen::VectorXd z = x;
+inline Vector Sigmoid::evaluate(const Vector& x) const {
+    Vector z = x;
 
     for (double& i : z) {
         i = evaluate(i);
@@ -131,8 +132,8 @@ inline Eigen::VectorXd Sigmoid::evaluate(const Eigen::VectorXd& x) const {
     return z;
 }
 
-inline Eigen::VectorXd Sigmoid::derivative(const Eigen::VectorXd& x) const {
-    Eigen::VectorXd z = x;
+inline Vector Sigmoid::derivative(const Vector& x) const {
+    Vector z = x;
 
     for (double& i : z) {
         i = derivative(i);
@@ -141,8 +142,8 @@ inline Eigen::VectorXd Sigmoid::derivative(const Eigen::VectorXd& x) const {
     return z;
 }
 
-inline Eigen::VectorXd Relu::evaluate(const Eigen::VectorXd& x) const {
-    Eigen::VectorXd z = x;
+inline Vector Relu::evaluate(const Vector& x) const {
+    Vector z = x;
 
     for (double& i : z) {
         i = evaluate(i);
@@ -151,8 +152,8 @@ inline Eigen::VectorXd Relu::evaluate(const Eigen::VectorXd& x) const {
     return z;
 }
 
-inline Eigen::VectorXd Relu::derivative(const Eigen::VectorXd& x) const {
-    Eigen::VectorXd z = x;
+inline Vector Relu::derivative(const Vector& x) const {
+    Vector z = x;
 
     for (double& i : z) {
         i = derivative(i);

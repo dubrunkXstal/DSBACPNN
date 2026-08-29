@@ -71,6 +71,8 @@ class BlackBox {
 public:
     BlackBox(std::ifstream& settings);
 
+    BlackBox(std::initializer_list<BlockConfig> block_configs);
+
     Vector evaluate(const Vector& x) const;
 
     void tuning(const Vector& x, const Vector& y);
@@ -116,6 +118,12 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
         } else {
             throw std::runtime_error("Didn't found activaton function for the block.");
         }
+    }
+}
+
+inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) {
+    for (const auto& block_config : block_configs) {
+        blocks.emplace_back(std::make_unique<Block>(block_config.input_dimension, block_config.output_dimension, std::move(block_config.activation_function)));
     }
 }
 

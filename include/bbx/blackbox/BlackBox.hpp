@@ -8,70 +8,18 @@
 #include <Eigen/Dense>
 
 #include <bbx/activationfunctions/ActivationFunctions.hpp>
+#include <bbx/activationfunctions/AnyActivationFunction.hpp>
+#include <bbx/blackbox/Block.hpp>
+#include <bbx/lossfunctions/LossFunctions.hpp>
 #include <bbx/types.hpp>
 
 namespace bbx {
-
-inline constexpr double gradient_step = 0.01;
-
-class LossFunction {
-public:
-    double distance(const Vector& z, const Vector& y) const
-    {
-        return pow((z - y).norm(), 2);
-    }
-
-    RowVector gradient(const Vector& z, const Vector& y) const;
-};
-
-class Block {
-public:
-    Block(Index in_dim, Index out_dim, CAny&& sigma)
-      : in_dim(in_dim),
-        out_dim(out_dim),
-        A(Matrix::Random(out_dim, in_dim)),
-        b(Matrix::Random(out_dim, 1)),
-        sigma(std::move(sigma)) {}
-
-    Vector evaluate(const Vector& x) const
-    {
-        return sigma->evaluate(A * x + b);
-    }
-
-    Matrix grad_A(const Vector& x, const RowVector& u) const
-    {
-        return sigma->derivative(A * x + b).asDiagonal() * u.transpose() * x.transpose();
-    }
-
-    Vector grad_b(const Vector& x, const RowVector& u) const
-    {
-        return sigma->derivative(A * x + b).asDiagonal() * u.transpose();
-    }
-
-    void gradientDescent(const Vector& x, const RowVector& u)
-    {
-        A -= grad_A(x, u) * gradient_step;
-        b -= grad_b(x, u) * gradient_step;
-    }
-
-    RowVector propogateBack(const Vector& x, const RowVector& u) const
-    {
-        return u * sigma->derivative(A * x + b).asDiagonal() * A;
-    }
-
-private:
-    Index in_dim;
-    Index out_dim;
-    Matrix A;
-    Vector b;
-    CAny sigma;
-};
 
 class BlackBox {
 public:
     BlackBox(std::ifstream& settings);
 
-    BlackBox(std::initializer_list<BlockConfig> block_configs);
+    // BlackBox(std::initializer_list<BlockConfig> block_configs);
 
     Vector evaluate(const Vector& x) const;
 
@@ -85,16 +33,6 @@ private:
 
 
 // Implementation
-
-inline RowVector LossFunction::gradient(const Vector& z, const Vector& y) const {
-    RowVector result(z.rows());
-
-    for (int i = 0; i < z.rows(); ++i) {
-        result[i] = 2 * (z[i] - y[i]);
-    }
-
-    return result;
-}
 
 inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::unique_ptr<Block> >()) {
     Index in_dim;
@@ -121,11 +59,11 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
     }
 }
 
-inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) {
-    for (const auto& block_config : block_configs) {
-        blocks.emplace_back(std::make_unique<Block>(block_config.input_dimension, block_config.output_dimension, std::move(block_config.activation_function)));
-    }
-}
+// inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) {
+//     for (const auto& block_config : block_configs) {
+//         blocks.emplace_back(std::make_unique<Block>(block_config.input_dimension, block_config.output_dimension, std::forward(block_config.activation_function)));
+//     }
+// }
 
 inline Vector BlackBox::evaluate(const Vector& x) const {
     Vector result = x;

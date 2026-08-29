@@ -16,24 +16,26 @@
 
 TEST_CASE("MNIST dataset", "[integration][mnist]")
 {
-    std::ifstream settings("");
-    REQUIRE(settings.is_open());
 
-    std::ifstream mnist_test("");
+    std::ifstream mnist_test("/Users/dobr.senuta/Downloads/mnist_test.csv");
     REQUIRE(mnist_test.is_open());
-    {
-        std::ifstream mnist_sample("");
-        REQUIRE(mnist_sample.is_open());
-        mnist_sample.close();
-    }
 
     std::string line;
     std::stringstream ss;
 
-    bbx::BlackBox bb(settings);
+    bbx::BlackBox bb{
+        {784, 500, bbx::Sigmoid{}},
+        {500, 100, bbx::Sigmoid{}},
+        {100, 100, bbx::Relu{}},
+        {100, 200, bbx::Sigmoid{}},
+        {200, 100, bbx::Sigmoid{}},
+        {100, 10, bbx::Sigmoid{}}
+    };
+
+    REQUIRE(bb.getBlocksCount() == 6);
 
     int epochs_cnt = 1;
-    int sample_size = 600;  // Сам MNIST по размеру - 60000.
+    int sample_size = 60;  // Сам MNIST по размеру - 60000.
 
     for (int e = 1; e <= epochs_cnt; ++e) {
         std::ifstream mnist_sample("/Users/dobr.senuta/Downloads/mnist_train.csv");
@@ -65,8 +67,6 @@ TEST_CASE("MNIST dataset", "[integration][mnist]")
         mnist_sample.close();
     }
 
-    std::cout << "--- after tuning ---\n";
-
     std::string integer;
     int success_cnt = 0;
 
@@ -77,7 +77,7 @@ TEST_CASE("MNIST dataset", "[integration][mnist]")
         Eigen::VectorXd y = Eigen::VectorXd::Zero(10);
         int y_int = std::stoi(integer);
         y[y_int] = 1;
-        std::cout << "Referen: " << integer << '\n';
+        CAPTURE(integer);
 
         Eigen::VectorXd x(784);
         for (double& i : x) {
@@ -94,12 +94,13 @@ TEST_CASE("MNIST dataset", "[integration][mnist]")
             }
         }
 
-        std::cout << "Predict: " << ind_max << "\n----------\n";
+        CAPTURE(ind_max);
 
         if (ind_max == y_int) {
             ++success_cnt;
         }
     }
 
-    std::cout << "Success rate: " << success_cnt / 100.0 << "%\n";
+    CAPTURE(success_cnt);
+    REQUIRE(success_cnt > 8000);
 }

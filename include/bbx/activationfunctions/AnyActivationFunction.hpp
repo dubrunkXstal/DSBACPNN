@@ -3,55 +3,99 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include "AnyMovable.h"
+#include <bbx/types.hpp>
 
 namespace bbx {
 
-template <class TBase>
-class IAny : public TBase {
-   public:
-    virtual double evaluate(const double x) const = 0;
+class AnyActivation {
+private:
+    struct Concept {
+        virtual ~Concept() = default;
 
-    virtual double derivative(const double x) const = 0;
+        virtual double evaluate(const double x) const = 0;
+        virtual double derivative(const double x) const = 0;
 
-    virtual Vector evaluate(const Vector& x) const = 0;
+        virtual Vector evaluate(const Vector& x) const = 0;
+        virtual Vector derivative(const Vector& x) const = 0; 
 
-    virtual Vector derivative(const Vector& x) const = 0;
-};
+        virtual std::unique_ptr<Concept> clone() const = 0;
+    };
 
-template <class TBase, class TObject>
-class CAnyImpl : public TBase {
-    using CBase = TBase;
+    template<class T>
+    struct Model final : Concept {
+        T object;
 
-   public:
-    using CBase::CBase;
+        explicit Model(T value) : object(std::move(value)) {}
 
-    double evaluate(const double x) const override
+        double evaluate(const double x) const override
+        {
+            return object.evaluate(x);
+        }
+
+        double derivative(const double x) const override
+        {
+            return object.derivative(x);
+        }
+
+        Vector evaluate(const Vector& x) const override
+        {
+            return object.evaluate(x);
+        }
+
+        Vector derivative(const Vector& x) const override
+        {
+            return object.derivative(x);
+        }
+
+        std::unique_ptr<Concept> clone() const override
+        {
+            return std::make_unique<Model<T> >(object);
+        } 
+    };
+
+public:
+    AnyActivation() = default;
+
+    template<class T>
+    AnyActivation(T value) : object_(std::make_unique<Model<T> >(std::move(value))) {}
+    
+    AnyActivation(const AnyActivation& other) : object_(other.object_ ? other.object_->clone() : nullptr) {}
+
+    AnyActivation& operator=(const AnyActivation& other)
     {
-        return CBase::Object().evaluate(x);
+        if (this != &other) {
+            object_ = other.object_ ? other.object_->clone() : nullptr;
+        }
+
+        return *this;
     }
 
-    double derivative(const double x) const override
+    AnyActivation(AnyActivation&& other) noexcept = default;
+
+    AnyActivation& operator=(AnyActivation&& other) noexcept = default;
+
+    double evaluate(const double x) const
     {
-        return CBase::Object().derivative(x);
+        return object_->evaluate(x);
     }
 
-    Vector evaluate(const Vector& x) const override
+    double derivative(const double x) const
     {
-        return CBase::Object().evaluate(x);
+        return object_->derivative(x);
     }
 
-    Vector derivative(const Vector& x) const override
+    Vector evaluate(const Vector& x) const
     {
-        return CBase::Object().derivative(x);
+        return object_->evaluate(x);
     }
-};
 
-class CAny : public NSLibrary::CAnyMovable<IAny, CAnyImpl> {
-    using CBase = CAnyMovable<IAny, CAnyImpl>;
-
-   public:
-    using CBase::CBase;
+    Vector derivative(const Vector& x) const
+    {
+        return object_->derivative(x);
+    }
+    
+private:
+    std::unique_ptr<Concept> object_;
 };
 
 }  // namespace bbx

@@ -19,14 +19,18 @@ class BlackBox {
 public:
     BlackBox(std::ifstream& settings);
 
-    // BlackBox(std::initializer_list<BlockConfig> block_configs);
+    BlackBox(std::initializer_list<BlockConfig> block_configs);
 
     Vector evaluate(const Vector& x) const;
 
     void tuning(const Vector& x, const Vector& y);
 
+    size_t getBlocksCount() const
+    {
+        return blocks.size();
+    }
+
 private:
-    size_t blocks_cnt;
     std::vector<std::unique_ptr<Block> > blocks;
     LossFunction loss;
 };
@@ -42,6 +46,7 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
 
     std::getline(settings, line);
     std::stringstream ss(line);
+    size_t blocks_cnt;
     ss >> blocks_cnt;
 
     for (int i = 0; i < blocks_cnt; ++i) {
@@ -59,16 +64,22 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
     }
 }
 
-// inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) {
-//     for (const auto& block_config : block_configs) {
-//         blocks.emplace_back(std::make_unique<Block>(block_config.input_dimension, block_config.output_dimension, std::forward(block_config.activation_function)));
-//     }
-// }
+inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) {
+    for (const auto& config : block_configs) {
+        blocks.emplace_back(
+            std::make_unique<Block>(
+                config.input_dimension,
+                config.output_dimension,
+                config.activation_function
+            )
+        );
+    }
+}
 
 inline Vector BlackBox::evaluate(const Vector& x) const {
     Vector result = x;
 
-    for (int i = 0; i < blocks_cnt; ++i) {
+    for (int i = 0; i < getBlocksCount(); ++i) {
         result = blocks[i]->evaluate(result);
     }
 
@@ -79,15 +90,15 @@ inline void BlackBox::tuning(const Vector& x, const Vector& y) {
     std::vector<std::unique_ptr<Vector> > remember_output;
     remember_output.emplace_back(std::make_unique<Vector>(blocks[0]->evaluate(x)));
 
-    for (int i = 1; i < blocks_cnt; ++i) {
+    for (int i = 1; i < getBlocksCount(); ++i) {
         remember_output.emplace_back(
             std::make_unique<Vector>(blocks[i]->evaluate(*remember_output[i - 1])));
     }
 
-    RowVector u = loss.gradient(*(remember_output[blocks_cnt - 1]), y);
+    RowVector u = loss.gradient(*(remember_output[getBlocksCount() - 1]), y);
     RowVector u_next;
 
-    for (int i = blocks_cnt - 1; i > 0; --i) {
+    for (int i = getBlocksCount() - 1; i > 0; --i) {
         u_next = blocks[i]->propogateBack(*(remember_output[i - 1]), u);
         blocks[i]->gradientDescent(*(remember_output[i - 1]), u);
         u = u_next;

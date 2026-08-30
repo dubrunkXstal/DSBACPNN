@@ -2,7 +2,7 @@
 
 namespace bbx {
 
-class LossFunction {
+class L2NormSquared {
 public:
     double distance(const Vector& z, const Vector& y) const
     {
@@ -14,7 +14,7 @@ public:
 
 // Implementation
 
-inline RowVector LossFunction::gradient(const Vector& z, const Vector& y) const {
+inline RowVector L2NormSquared::gradient(const Vector& z, const Vector& y) const {
     RowVector result(z.rows());
 
     for (int i = 0; i < z.rows(); ++i) {

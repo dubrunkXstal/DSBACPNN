@@ -55,9 +55,9 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
         ss >> in_dim >> out_dim >> activaton;
 
         if (activaton == "sigmoid") {
-            blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Sigmoid()));
+            blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Sigmoid{}));
         } else if (activaton == "relu") {
-            blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu()));
+            blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu{}));
         } else {
             throw std::runtime_error("Didn't found activaton function for the block.");
         }

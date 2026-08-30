@@ -11,6 +11,7 @@
 #include <bbx/activationfunctions/AnyActivationFunction.hpp>
 #include <bbx/blackbox/Block.hpp>
 #include <bbx/lossfunctions/LossFunctions.hpp>
+#include <bbx/lossfunctions/AnyLossFunction.hpp>
 #include <bbx/types.hpp>
 
 namespace bbx {
@@ -20,6 +21,11 @@ public:
     BlackBox(std::ifstream& settings);
 
     BlackBox(std::initializer_list<BlockConfig> block_configs);
+
+    void setLoss(AnyLoss loss_function)
+    {
+        loss = loss_function;
+    }
 
     Vector evaluate(const Vector& x) const;
 
@@ -32,13 +38,13 @@ public:
 
 private:
     std::vector<std::unique_ptr<Block> > blocks;
-    LossFunction loss;
+    AnyLoss loss;
 };
 
 
 // Implementation
 
-inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::unique_ptr<Block> >()) {
+inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::unique_ptr<Block> >()), loss(L2NormSquared{}) {
     Index in_dim;
     Index out_dim;
     std::string activaton;
@@ -64,7 +70,7 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
     }
 }
 
-inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) {
+inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : loss(L2NormSquared{}) {
     for (const auto& config : block_configs) {
         blocks.emplace_back(
             std::make_unique<Block>(

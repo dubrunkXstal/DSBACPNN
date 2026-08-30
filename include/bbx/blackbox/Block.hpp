@@ -1,3 +1,5 @@
+#pragma once
+
 #include <bbx/activationfunctions/AnyActivationFunction.hpp>
 #include <bbx/types.hpp>
 

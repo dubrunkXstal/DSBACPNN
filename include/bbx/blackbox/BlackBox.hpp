@@ -31,6 +31,8 @@ public:
 
     void tuning(const Vector& x, const Vector& y);
 
+    void tuning(const Matrix& x_batch, const Matrix& y_batch);
+
     size_t getBlocksCount() const
     {
         return blocks.size();
@@ -111,6 +113,30 @@ inline void BlackBox::tuning(const Vector& x, const Vector& y) {
     }
 
     blocks[0]->gradientDescent(x, u);
+}
+
+inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch) {
+    std::vector<std::unique_ptr<Matrix> > remember_output;
+
+    remember_output.emplace_back(std::make_unique<Matrix>(blocks[0]->evaluate(x_batch)));
+    for (int i = 1; i < getBlocksCount(); ++i) {
+        remember_output.emplace_back(
+            std::make_unique<Matrix>(blocks[i]->evaluate(*remember_output[i - 1])));
+    }
+
+    Matrix u = Matrix::Zero(y_batch.cols(), y_batch.rows());
+    for (Index j = 0; j < u.rows(); ++j) {
+        u.row(j) = loss.gradient((*(remember_output[getBlocksCount() - 1])).col(j), y_batch.col(j));
+    }
+    Matrix u_next;
+
+    for (int i = getBlocksCount() - 1; i > 0; --i) {
+        u_next = blocks[i]->propogateBack(*(remember_output[i - 1]), u);
+        blocks[i]->gradientDescent(*(remember_output[i - 1]), u);
+        u = u_next;
+    }
+
+    blocks[0]->gradientDescent(x_batch, u);
 }
 
 }  // namespace bbx

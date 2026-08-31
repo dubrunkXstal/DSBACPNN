@@ -27,14 +27,49 @@ public:
         return sigma.evaluate(A * x + b);
     }
 
+    Matrix evaluate(const Matrix& x_batch) const
+    {
+        return ((A * x_batch).colwise() + b).unaryExpr([this](double v) {
+            return sigma.evaluate(v);
+        });
+    }
+
     Matrix grad_A(const Vector& x, const RowVector& u) const
     {
-        return sigma.derivative(A * x + b).asDiagonal() * u.transpose() * x.transpose();
+        Vector delta = sigma.derivative(A * x + b).array() * u.transpose().array();
+
+        return delta * x.transpose();
+    }
+
+    Matrix grad_A(const Matrix& x_batch, const Matrix& u_batch) const
+    {
+        Matrix Z = (A * x_batch).colwise() + b;
+
+        Matrix Delta = Z.unaryExpr([this](double v) {
+            return sigma.derivative(v);
+        });
+
+        Delta.array() *= u_batch.transpose().array();
+
+        return Delta * x_batch.transpose();
     }
 
     Vector grad_b(const Vector& x, const RowVector& u) const
     {
         return sigma.derivative(A * x + b).asDiagonal() * u.transpose();
+    }
+
+    Vector grad_b(const Matrix& x_batch, const Matrix& u_batch) const
+    {
+        Matrix Z = (A * x_batch).colwise() + b;
+
+        Matrix Delta = Z.unaryExpr([this](double v) {
+            return sigma.derivative(v);
+        });
+
+        Delta.array() *= u_batch.transpose().array();
+
+        return Delta.rowwise().sum();
     }
 
     void gradientDescent(const Vector& x, const RowVector& u)
@@ -43,9 +78,28 @@ public:
         b -= grad_b(x, u) * gradient_step;
     }
 
+    void gradientDescent(const Matrix& x_batch, const Matrix& u_batch)
+    {
+        A -= (grad_A(x_batch, u_batch) / x_batch.cols()) * gradient_step;
+        b -= (grad_b(x_batch, u_batch) / x_batch.cols()) * gradient_step;
+    }
+
     RowVector propogateBack(const Vector& x, const RowVector& u) const
     {
         return u * sigma.derivative(A * x + b).asDiagonal() * A;
+    }
+
+    Matrix propogateBack(const Matrix& x_batch, const Matrix& u_batch) const
+    {
+        Matrix Z = (A * x_batch).colwise() + b;
+
+        Matrix Delta = Z.unaryExpr([this](double v) {
+            return sigma.derivative(v);
+        });
+
+        Delta.array() *= u_batch.transpose().array();
+
+        return Delta.transpose() * A;
     }
 
 private:

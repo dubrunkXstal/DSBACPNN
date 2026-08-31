@@ -32,7 +32,8 @@ struct Sigmoid {
 
     double derivative(const double x) const
     {
-        return exp(-x) / pow(1 + exp(-x), 2);
+        double s = evaluate(x);
+        return s * (1.0 - s);
     }
 
     Vector evaluate(const Vector& x) const;

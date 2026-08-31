@@ -47,7 +47,7 @@ TEST_CASE("MNIST", "[integration]")
         int i = 0;
 
         while (mnist_sample.good() && std::getline(mnist_sample, line) && i < sample_size) {
-            std::cout << "epoch " << e << "/" << epochs_cnt << " : - " << ++i << " -\n";
+            // std::cout << "epoch " << e << "/" << epochs_cnt << " : - " << ++i << " -\n";
 
             ss = std::stringstream(line);
             std::getline(ss, integer, ',');

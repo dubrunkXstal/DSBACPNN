@@ -2,8 +2,13 @@
 
 #include <cstdio>
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <memory>
 #include <vector>
+#include <filesystem>
+#include <algorithm>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -32,6 +37,8 @@ public:
     void tuning(const Vector& x, const Vector& y);
 
     void tuning(const Matrix& x_batch, const Matrix& y_batch);
+
+    void loadCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter = ',', bool have_header = false, int batch_size = 64);
 
     size_t getBlocksCount() const
     {
@@ -67,7 +74,7 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
         } else if (activaton == "relu") {
             blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu{}));
         } else {
-            throw std::runtime_error("Didn't found activaton function for the block.");
+            throw std::runtime_error("BlackBox::BlackBox(): Specified activaton function for the block is unknown.");
         }
     }
 }
@@ -137,6 +144,129 @@ inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch) {
     }
 
     blocks[0]->gradientDescent(x_batch, u);
+}
+
+inline void BlackBox::loadCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter, bool have_header, int batch_size)
+{
+    if (!std::filesystem::exists(path)) {
+        throw std::runtime_error("BlackBox::loadCSV(): specified file not found.");
+    }
+    if (path.extension() != ".csv") {
+        throw std::runtime_error("BlackBox::loadCSV(): provided file is not in CSV format.");
+    }
+    if (target_cols_idx.size() == 0) {
+        throw std::runtime_error("BlackBox::loadCSV(): no target columns specified.");
+    }
+
+    std::ifstream csv(path);
+    if (!csv.is_open()){
+        throw std::runtime_error("BlackBox::loadCSV(): cannot open the file.");
+    }
+
+    std::string line;
+    std::stringstream ss;
+    std::getline(csv, line);
+
+    int cols_cnt = std::count(line.begin(), line.end(), delimiter) + 1;
+
+    for (int& i : target_cols_idx) {
+        if (i >= cols_cnt) {
+            throw std::runtime_error("BlackBox::loadCSV(): some specified target column index exceeds total amount of colums.");
+        }
+    }
+
+    std::vector<std::vector<double> > x_accumuate;
+    std::vector<std::vector<double> > y_accumuate;
+    x_accumuate.reserve(batch_size); 
+    y_accumuate.reserve(batch_size); 
+
+    std::string value_str;
+
+    std::vector<int> not_target_cols_idx;
+    std::vector<double> vector_line(cols_cnt);
+
+    for (int i = 0; i < cols_cnt; ++i) {
+        if (std::find(target_cols_idx.begin(), target_cols_idx.end(), i) == target_cols_idx.end()) {
+            not_target_cols_idx.emplace_back(i);
+        }
+    }
+
+    int current_batch_size = 0;
+
+    if (!have_header) {
+        ss = std::stringstream(line);
+        y_accumuate.emplace_back();
+        x_accumuate.emplace_back();
+        ++current_batch_size;
+
+        for (int i = 0; i < cols_cnt; ++i) {
+            std::getline(ss, value_str, delimiter);
+            vector_line[i] = std::stod(value_str);
+        }
+        
+        for (int& i : target_cols_idx) {
+            y_accumuate.back().emplace_back(vector_line[i]);
+        }
+
+        for (int& i : not_target_cols_idx) {
+            x_accumuate.back().emplace_back(vector_line[i]);
+        }
+    }
+
+    while (std::getline(csv, line)) {
+        ss = std::stringstream(line);
+        y_accumuate.emplace_back();
+        x_accumuate.emplace_back();
+        ++current_batch_size;
+
+        for (int i = 0; i < cols_cnt; ++i) {
+            std::getline(ss, value_str, delimiter);
+            vector_line[i] = std::stod(value_str);
+        }
+        
+        for (int& i : target_cols_idx) {
+            y_accumuate.back().emplace_back(vector_line[i]);
+        }
+
+        for (int& i : not_target_cols_idx) {
+            x_accumuate.back().emplace_back(vector_line[i]);
+        }
+
+        if (current_batch_size == batch_size) {
+            Matrix x_batch = Matrix::Zero(not_target_cols_idx.size(), batch_size);
+            Matrix y_batch = Matrix::Zero(target_cols_idx.size(), batch_size);
+
+            for (Index i = 0; i < batch_size; ++i) {
+                x_batch.col(i) = Eigen::Map<Vector>(x_accumuate[i].data(), not_target_cols_idx.size());
+            }
+            
+            for (Index i = 0; i < batch_size; ++i) {
+                y_batch.col(i) = Eigen::Map<Vector>(y_accumuate[i].data(), target_cols_idx.size());
+            }
+
+            tuning(x_batch, y_batch);
+            current_batch_size = 0;
+
+            x_accumuate.clear();
+            y_accumuate.clear();
+        }
+    }
+
+    if (current_batch_size != 0) {
+        Matrix x_batch = Matrix::Zero(not_target_cols_idx.size(), current_batch_size);
+        Matrix y_batch = Matrix::Zero(target_cols_idx.size(), current_batch_size);
+
+        for (Index i = 0; i < current_batch_size; ++i) {
+            x_batch.col(i) = Eigen::Map<Vector>(x_accumuate[i].data(), not_target_cols_idx.size());
+        }
+        
+        for (Index i = 0; i < current_batch_size; ++i) {
+            y_batch.col(i) = Eigen::Map<Vector>(y_accumuate[i].data(), target_cols_idx.size());
+        }
+
+        tuning(x_batch, y_batch);
+    }
+    
 }
 
 }  // namespace bbx

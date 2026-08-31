@@ -38,7 +38,7 @@ public:
 
     void tuning(const Matrix& x_batch, const Matrix& y_batch);
 
-    void loadCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter = ',', bool have_header = false, int batch_size = 64);
+    void loadTrainCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter = ',', bool have_header = false, int batch_size = 64);
 
     size_t getBlocksCount() const
     {
@@ -146,21 +146,21 @@ inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch) {
     blocks[0]->gradientDescent(x_batch, u);
 }
 
-inline void BlackBox::loadCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter, bool have_header, int batch_size)
+inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter, bool have_header, int batch_size)
 {
     if (!std::filesystem::exists(path)) {
-        throw std::runtime_error("BlackBox::loadCSV(): specified file not found.");
+        throw std::runtime_error("BlackBox::loadTrainCSV(): specified file not found.");
     }
     if (path.extension() != ".csv") {
-        throw std::runtime_error("BlackBox::loadCSV(): provided file is not in CSV format.");
+        throw std::runtime_error("BlackBox::loadTrainCSV(): provided file is not in CSV format.");
     }
     if (target_cols_idx.size() == 0) {
-        throw std::runtime_error("BlackBox::loadCSV(): no target columns specified.");
+        throw std::runtime_error("BlackBox::loadTrainCSV(): no target columns specified.");
     }
 
     std::ifstream csv(path);
     if (!csv.is_open()){
-        throw std::runtime_error("BlackBox::loadCSV(): cannot open the file.");
+        throw std::runtime_error("BlackBox::loadTrainCSV(): cannot open the file.");
     }
 
     std::string line;
@@ -171,7 +171,7 @@ inline void BlackBox::loadCSV(const std::filesystem::path& path, std::vector<int
 
     for (int& i : target_cols_idx) {
         if (i >= cols_cnt) {
-            throw std::runtime_error("BlackBox::loadCSV(): some specified target column index exceeds total amount of colums.");
+            throw std::runtime_error("BlackBox::loadTrainCSV(): some specified target column index exceeds total amount of colums.");
         }
     }
 

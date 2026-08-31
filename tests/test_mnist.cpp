@@ -14,7 +14,7 @@
 
 // Датасет: https://github.com/phoebetronic/mnist
 
-TEST_CASE("MNIST dataset", "[integration][mnist]")
+TEST_CASE("MNIST", "[integration]")
 {
 
     std::ifstream mnist_test("/Users/dobr.senuta/Downloads/mnist_test.csv");
@@ -35,7 +35,7 @@ TEST_CASE("MNIST dataset", "[integration][mnist]")
     REQUIRE(bb.getBlocksCount() == 6);
 
     int epochs_cnt = 1;
-    int sample_size = 60;  // Сам MNIST по размеру - 60000.
+    int sample_size = 60000;  // Сам MNIST по размеру - 60000.
 
     for (int e = 1; e <= epochs_cnt; ++e) {
         std::ifstream mnist_sample("/Users/dobr.senuta/Downloads/mnist_train.csv");
@@ -69,6 +69,7 @@ TEST_CASE("MNIST dataset", "[integration][mnist]")
 
     std::string integer;
     int success_cnt = 0;
+    int total_cnt = 0;
 
     while (mnist_test.good() && std::getline(mnist_test, line)) {
         ss = std::stringstream(line);
@@ -99,8 +100,10 @@ TEST_CASE("MNIST dataset", "[integration][mnist]")
         if (ind_max == y_int) {
             ++success_cnt;
         }
+        ++total_cnt;
     }
 
     CAPTURE(success_cnt);
-    REQUIRE(success_cnt > 8000);
+    CAPTURE(total_cnt);
+    FAIL("Forcing failure to view captures");
 }

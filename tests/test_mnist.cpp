@@ -1,13 +1,3 @@
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <string>
-
-#include <Eigen/Core>
-#include <Eigen/Dense>
-
 #include <catch2/catch_test_macros.hpp>
 
 #include <bbx/blackbox/BlackBox.hpp>
@@ -16,13 +6,6 @@
 
 TEST_CASE("MNIST", "[integration]")
 {
-
-    std::ifstream mnist_test("/Users/dobr.senuta/Downloads/mnist_test.csv");
-    REQUIRE(mnist_test.is_open());
-
-    std::string line;
-    std::stringstream ss;
-
     bbx::BlackBox bb{
         {784, 500, bbx::Sigmoid{}},
         {500, 100, bbx::Sigmoid{}},
@@ -34,76 +17,22 @@ TEST_CASE("MNIST", "[integration]")
 
     REQUIRE(bb.getBlocksCount() == 6);
 
-    int epochs_cnt = 1;
-    int sample_size = 60000;  // Сам MNIST по размеру - 60000.
+    bb.loadTrainCSV(
+        "",
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+    );
 
-    for (int e = 1; e <= epochs_cnt; ++e) {
-        std::ifstream mnist_sample("/Users/dobr.senuta/Downloads/mnist_train.csv");
-        REQUIRE(mnist_sample.is_open());
+    double score = 0.0;
+    score = bb.loadTestCSV(
+        "",
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+        [](const bbx::Vector& x, const bbx::Vector& y) {
+            bbx::Index x_argmax, y_argmax;
+            x.maxCoeff(&x_argmax);
+            y.maxCoeff(&y_argmax);
+            return x_argmax == y_argmax;
+    });
 
-        std::string line;
-        std::stringstream ss;
-        std::string integer;
-        int i = 0;
-
-        while (mnist_sample.good() && std::getline(mnist_sample, line) && i < sample_size) {
-            // std::cout << "epoch " << e << "/" << epochs_cnt << " : - " << ++i << " -\n";
-
-            ss = std::stringstream(line);
-            std::getline(ss, integer, ',');
-
-            Eigen::VectorXd y = Eigen::VectorXd::Zero(10);
-            y[std::stoi(integer)] = 1;
-
-            Eigen::VectorXd x(784);
-            for (double& i : x) {
-                std::getline(ss, integer, ',');
-                i = std::stoi(integer) / 255.0;
-            }
-
-            bb.tuning(x, y);
-        }
-
-        mnist_sample.close();
-    }
-
-    std::string integer;
-    int success_cnt = 0;
-    int total_cnt = 0;
-
-    while (mnist_test.good() && std::getline(mnist_test, line)) {
-        ss = std::stringstream(line);
-        std::getline(ss, integer, ',');
-
-        Eigen::VectorXd y = Eigen::VectorXd::Zero(10);
-        int y_int = std::stoi(integer);
-        y[y_int] = 1;
-        CAPTURE(integer);
-
-        Eigen::VectorXd x(784);
-        for (double& i : x) {
-            std::getline(ss, integer, ',');
-            i = std::stoi(integer) / 255.0;
-        }
-
-        Eigen::VectorXd res = bb.evaluate(x);
-
-        int ind_max = 0;
-        for (int i = 1; i < 10; ++i) {
-            if (res[i] > res[ind_max]) {
-                ind_max = i;
-            }
-        }
-
-        CAPTURE(ind_max);
-
-        if (ind_max == y_int) {
-            ++success_cnt;
-        }
-        ++total_cnt;
-    }
-
-    CAPTURE(success_cnt);
-    CAPTURE(total_cnt);
+    CAPTURE(score);
     FAIL("Forcing failure to view captures");
 }

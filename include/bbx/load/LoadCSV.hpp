@@ -4,8 +4,8 @@
 
 namespace bbx {
 
-inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, char delimiter, bool have_header, int batch_size)
-{
+inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx,
+                                   char delimiter, bool have_header, int batch_size) {
     if (!std::filesystem::exists(path)) {
         throw std::runtime_error("BlackBox::loadTrainCSV(): specified file not found.");
     }
@@ -17,7 +17,7 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
     }
 
     std::ifstream csv(path);
-    if (!csv.is_open()){
+    if (!csv.is_open()) {
         throw std::runtime_error("BlackBox::loadTrainCSV(): cannot open the file.");
     }
 
@@ -29,14 +29,16 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
 
     for (int& i : target_cols_idx) {
         if (i >= cols_cnt) {
-            throw std::runtime_error("BlackBox::loadTrainCSV(): some specified target column index exceeds total amount of colums.");
+            throw std::runtime_error(
+                "BlackBox::loadTrainCSV(): some specified target column index exceeds total amount of "
+                "colums.");
         }
     }
 
     std::vector<std::vector<double> > x_accumuate;
     std::vector<std::vector<double> > y_accumuate;
-    x_accumuate.reserve(batch_size); 
-    y_accumuate.reserve(batch_size); 
+    x_accumuate.reserve(batch_size);
+    y_accumuate.reserve(batch_size);
 
     std::string value_str;
 
@@ -65,7 +67,7 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
             std::getline(ss, value_str, delimiter);
             vector_line[i] = std::stod(value_str);
         }
-        
+
         for (int& i : target_cols_idx) {
             y_accumuate.back().emplace_back(vector_line[i]);
         }
@@ -81,7 +83,7 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
             for (Index i = 0; i < batch_size; ++i) {
                 x_batch.col(i) = Eigen::Map<Vector>(x_accumuate[i].data(), not_target_cols_idx.size());
             }
-            
+
             for (Index i = 0; i < batch_size; ++i) {
                 y_batch.col(i) = Eigen::Map<Vector>(y_accumuate[i].data(), target_cols_idx.size());
             }
@@ -101,7 +103,7 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
         for (Index i = 0; i < current_batch_size; ++i) {
             x_batch.col(i) = Eigen::Map<Vector>(x_accumuate[i].data(), not_target_cols_idx.size());
         }
-        
+
         for (Index i = 0; i < current_batch_size; ++i) {
             y_batch.col(i) = Eigen::Map<Vector>(y_accumuate[i].data(), target_cols_idx.size());
         }
@@ -110,8 +112,9 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
     }
 }
 
-inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx, std::function<bool(const Vector&, const Vector&)> is_correct,  char delimiter, bool have_header)
-{
+inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx,
+                                    std::function<bool(const Vector&, const Vector&)> is_correct,
+                                    char delimiter, bool have_header) {
     if (!std::filesystem::exists(path)) {
         throw std::runtime_error("BlackBox::loadTestCSV(): specified file not found.");
     }
@@ -123,7 +126,7 @@ inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vect
     }
 
     std::ifstream csv(path);
-    if (!csv.is_open()){
+    if (!csv.is_open()) {
         throw std::runtime_error("BlackBox::loadTestCSV(): cannot open the file.");
     }
 
@@ -136,7 +139,9 @@ inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vect
 
     for (int& i : target_cols_idx) {
         if (i >= cols_cnt) {
-            throw std::runtime_error("BlackBox::loadTestCSV(): some specified target column index exceeds total amount of colums.");
+            throw std::runtime_error(
+                "BlackBox::loadTestCSV(): some specified target column index exceeds total amount of "
+                "colums.");
         }
     }
 
@@ -166,7 +171,7 @@ inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vect
             std::getline(ss, value_str, delimiter);
             vector_line[i] = std::stod(value_str);
         }
-        
+
         for (int& i : target_cols_idx) {
             y.emplace_back(vector_line[i]);
         }
@@ -175,13 +180,12 @@ inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vect
             x.emplace_back(vector_line[i]);
         }
 
-
         ++total_cnt;
         if (is_correct(evaluate(Eigen::Map<Vector>(x.data(), x.size())),
                        Eigen::Map<Vector>(y.data(), y.size()))) {
-                                    ++success_cnt;
-                                }
-        
+            ++success_cnt;
+        }
+
         x.clear();
         y.clear();
     } while (std::getline(csv, line));

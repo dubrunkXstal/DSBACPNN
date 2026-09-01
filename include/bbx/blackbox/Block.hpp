@@ -19,109 +19,118 @@ struct BlockConfig {
 
 class Block {
 public:
-    Block(Index in_dim, Index out_dim, const AnyActivation& sigma, const AnyOptimizer& optimizer = VanillaDescent{})
-      : in_dim(in_dim),
-        out_dim(out_dim),
-        A(Matrix::Random(out_dim, in_dim)),
-        b(Vector::Random(out_dim)),
-        sigma(sigma),
-        A_optimizer(optimizer),
-        b_optimizer(optimizer) {}
+    Block(Index input_dimension, Index output_dimension, const AnyActivation& sigma, const AnyOptimizer& optimizer = VanillaDescent{})
+      : input_dimension_(input_dimension),
+        output_dimension_(output_dimension),
+        A_(Matrix::Random(output_dimension, input_dimension)),
+        b_(Vector::Random(output_dimension)),
+        sigma_(sigma),
+        A_optimizer_(optimizer),
+        b_optimizer_(optimizer) {}
 
     Vector evaluate(const Vector& x) const
     {
-        return sigma.evaluate(A * x + b);
+        return sigma_.evaluate(A_ * x + b_);
     }
 
     Matrix evaluate(const Matrix& x_batch) const
     {
-        return ((A * x_batch).colwise() + b).unaryExpr([this](double v) {
-            return sigma.evaluate(v);
+        return ((A_ * x_batch).colwise() + b_).unaryExpr([this](double v) {
+            return sigma_.evaluate(v);
         });
     }
 
     Matrix grad_A(const Vector& x, const RowVector& u) const
     {
-        Vector delta = sigma.derivative(A * x + b).array() * u.transpose().array();
-
+        Vector delta = sigma_.derivative(A_ * x + b_).array() * u.transpose().array();
         return delta * x.transpose();
     }
 
-    Matrix grad_A(const Matrix& x_batch, const Matrix& u_batch) const
-    {
-        Matrix Z = (A * x_batch).colwise() + b;
-
-        Matrix Delta = Z.unaryExpr([this](double v) {
-            return sigma.derivative(v);
-        });
-
-        Delta.array() *= u_batch.transpose().array();
-
-        return Delta * x_batch.transpose();
-    }
+    Matrix grad_A(const Matrix& x_batch, const Matrix& u_batch) const;
 
     Vector grad_b(const Vector& x, const RowVector& u) const
     {
-        return sigma.derivative(A * x + b).asDiagonal() * u.transpose();
+        return sigma_.derivative(A_ * x + b_).asDiagonal() * u.transpose();
     }
 
-    Vector grad_b(const Matrix& x_batch, const Matrix& u_batch) const
-    {
-        Matrix Z = (A * x_batch).colwise() + b;
-
-        Matrix Delta = Z.unaryExpr([this](double v) {
-            return sigma.derivative(v);
-        });
-
-        Delta.array() *= u_batch.transpose().array();
-
-        return Delta.rowwise().sum();
-    }
+    Vector grad_b(const Matrix& x_batch, const Matrix& u_batch) const;
 
     void gradientDescent(const Vector& x, const RowVector& u)
     {
-        A += A_optimizer.computeUpdate(grad_A(x, u));
-        b += b_optimizer.computeUpdate(grad_b(x, u));
+        A_ += A_optimizer_.computeUpdate(grad_A(x, u));
+        b_ += b_optimizer_.computeUpdate(grad_b(x, u));
     }
 
     void gradientDescent(const Matrix& x_batch, const Matrix& u_batch)
     {
-        A += A_optimizer.computeUpdate(grad_A(x_batch, u_batch));
-        b += b_optimizer.computeUpdate(grad_b(x_batch, u_batch));
+        A_ += A_optimizer_.computeUpdate(grad_A(x_batch, u_batch));
+        b_ += b_optimizer_.computeUpdate(grad_b(x_batch, u_batch));
     }
 
     RowVector propogateBack(const Vector& x, const RowVector& u) const
     {
-        return u * sigma.derivative(A * x + b).asDiagonal() * A;
+        return u * sigma_.derivative(A_ * x + b_).asDiagonal() * A_;
     }
 
-    Matrix propogateBack(const Matrix& x_batch, const Matrix& u_batch) const
-    {
-        Matrix Z = (A * x_batch).colwise() + b;
-
-        Matrix Delta = Z.unaryExpr([this](double v) {
-            return sigma.derivative(v);
-        });
-
-        Delta.array() *= u_batch.transpose().array();
-
-        return Delta.transpose() * A;
-    }
+    Matrix propogateBack(const Matrix& x_batch, const Matrix& u_batch) const;
 
     void setOptimizer(const AnyOptimizer& optimizer)
     {
-        A_optimizer = optimizer;
-        b_optimizer = optimizer;
+        A_optimizer_ = optimizer;
+        b_optimizer_ = optimizer;
     }
 
 private:
-    Index in_dim;
-    Index out_dim;
-    Matrix A;
-    Vector b;
-    AnyActivation sigma;
-    AnyOptimizer A_optimizer;
-    AnyOptimizer b_optimizer;
+    Index input_dimension_;
+    Index output_dimension_;
+
+    Matrix A_;
+    Vector b_;
+    AnyActivation sigma_;
+
+    AnyOptimizer A_optimizer_;
+    AnyOptimizer b_optimizer_;
 };
+
+// Implementation
+
+inline Matrix Block::grad_A(const Matrix& x_batch, const Matrix& u_batch) const
+{
+    Matrix Z = (A_ * x_batch).colwise() + b_;
+
+    Matrix Delta = Z.unaryExpr([this](double v) {
+        return sigma_.derivative(v);
+    });
+
+    Delta.array() *= u_batch.transpose().array();
+
+    return Delta * x_batch.transpose();
+}
+
+inline Vector Block::grad_b(const Matrix& x_batch, const Matrix& u_batch) const
+{
+    Matrix Z = (A_ * x_batch).colwise() + b_;
+
+    Matrix Delta = Z.unaryExpr([this](double v) {
+        return sigma_.derivative(v);
+    });
+
+    Delta.array() *= u_batch.transpose().array();
+
+    return Delta.rowwise().sum();
+}
+
+inline Matrix Block::propogateBack(const Matrix& x_batch, const Matrix& u_batch) const
+{
+    Matrix Z = (A_ * x_batch).colwise() + b_;
+
+    Matrix Delta = Z.unaryExpr([this](double v) {
+        return sigma_.derivative(v);
+    });
+
+    Delta.array() *= u_batch.transpose().array();
+
+    return Delta.transpose() * A_;
+}
 
 }  // namespace bbx

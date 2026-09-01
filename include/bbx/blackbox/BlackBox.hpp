@@ -27,11 +27,6 @@ public:
 
     BlackBox(std::initializer_list<BlockConfig> block_configs);
 
-    void setLoss(AnyLoss loss_function)
-    {
-        loss = loss_function;
-    }
-
     Vector evaluate(const Vector& x) const;
 
     void tuning(const Vector& x, const Vector& y);
@@ -44,24 +39,29 @@ public:
 
     size_t getBlocksCount() const
     {
-        return blocks.size();
+        return blocks_.size();
     }
 
-    void setOptimizer(const AnyOptimizer& optimizer, std::vector<int> blocks_idx) {
+    void setLoss(AnyLoss loss_function)
+    {
+        loss_ = loss_function;
+    }
+
+    void setOptimizer(const AnyOptimizer& optimizer, std::vector<int> blocks_idx)
+    {
         for (int& id : blocks_idx) {
-            blocks[id]->setOptimizer(optimizer);
+            blocks_[id]->setOptimizer(optimizer);
         }
     }
 
 private:
-    std::vector<std::unique_ptr<Block> > blocks;
-    AnyLoss loss;
+    std::vector<std::unique_ptr<Block> > blocks_;
+    AnyLoss loss_;
 };
-
 
 // Implementation
 
-inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::unique_ptr<Block> >()), loss(L2NormSquared{}) {
+inline BlackBox::BlackBox(std::ifstream& settings) : blocks_(std::vector<std::unique_ptr<Block> >()), loss_(L2NormSquared{}) {
     Index in_dim;
     Index out_dim;
     std::string activation;
@@ -78,18 +78,18 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
         ss >> in_dim >> out_dim >> activation;
 
         if (activation == "sigmoid") {
-            blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Sigmoid{}));
+            blocks_.emplace_back(std::make_unique<Block>(in_dim, out_dim, Sigmoid{}));
         } else if (activation == "relu") {
-            blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu{}));
+            blocks_.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu{}));
         } else {
             throw std::runtime_error("BlackBox::BlackBox(): Specified activation function for the block is unknown.");
         }
     }
 }
 
-inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : loss(L2NormSquared{}) {
+inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : loss_(L2NormSquared{}) {
     for (const auto& config : block_configs) {
-        blocks.emplace_back(
+        blocks_.emplace_back(
             std::make_unique<Block>(
                 config.input_dimension,
                 config.output_dimension,
@@ -104,7 +104,7 @@ inline Vector BlackBox::evaluate(const Vector& x) const {
     Vector result = x;
 
     for (int i = 0; i < getBlocksCount(); ++i) {
-        result = blocks[i]->evaluate(result);
+        result = blocks_[i]->evaluate(result);
     }
 
     return result;
@@ -112,47 +112,47 @@ inline Vector BlackBox::evaluate(const Vector& x) const {
 
 inline void BlackBox::tuning(const Vector& x, const Vector& y) {
     std::vector<std::unique_ptr<Vector> > remember_output;
-    remember_output.emplace_back(std::make_unique<Vector>(blocks[0]->evaluate(x)));
+    remember_output.emplace_back(std::make_unique<Vector>(blocks_[0]->evaluate(x)));
 
     for (int i = 1; i < getBlocksCount(); ++i) {
         remember_output.emplace_back(
-            std::make_unique<Vector>(blocks[i]->evaluate(*remember_output[i - 1])));
+            std::make_unique<Vector>(blocks_[i]->evaluate(*remember_output[i - 1])));
     }
 
-    RowVector u = loss.gradient(*(remember_output[getBlocksCount() - 1]), y);
+    RowVector u = loss_.gradient(*(remember_output[getBlocksCount() - 1]), y);
     RowVector u_next;
 
     for (int i = getBlocksCount() - 1; i > 0; --i) {
-        u_next = blocks[i]->propogateBack(*(remember_output[i - 1]), u);
-        blocks[i]->gradientDescent(*(remember_output[i - 1]), u);
+        u_next = blocks_[i]->propogateBack(*(remember_output[i - 1]), u);
+        blocks_[i]->gradientDescent(*(remember_output[i - 1]), u);
         u = u_next;
     }
 
-    blocks[0]->gradientDescent(x, u);
+    blocks_[0]->gradientDescent(x, u);
 }
 
 inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch) {
     std::vector<std::unique_ptr<Matrix> > remember_output;
 
-    remember_output.emplace_back(std::make_unique<Matrix>(blocks[0]->evaluate(x_batch)));
+    remember_output.emplace_back(std::make_unique<Matrix>(blocks_[0]->evaluate(x_batch)));
     for (int i = 1; i < getBlocksCount(); ++i) {
         remember_output.emplace_back(
-            std::make_unique<Matrix>(blocks[i]->evaluate(*remember_output[i - 1])));
+            std::make_unique<Matrix>(blocks_[i]->evaluate(*remember_output[i - 1])));
     }
 
     Matrix u = Matrix::Zero(y_batch.cols(), y_batch.rows());
     for (Index j = 0; j < u.rows(); ++j) {
-        u.row(j) = loss.gradient((*(remember_output[getBlocksCount() - 1])).col(j), y_batch.col(j));
+        u.row(j) = loss_.gradient((*(remember_output[getBlocksCount() - 1])).col(j), y_batch.col(j));
     }
     Matrix u_next;
 
     for (int i = getBlocksCount() - 1; i > 0; --i) {
-        u_next = blocks[i]->propogateBack(*(remember_output[i - 1]), u);
-        blocks[i]->gradientDescent(*(remember_output[i - 1]), u);
+        u_next = blocks_[i]->propogateBack(*(remember_output[i - 1]), u);
+        blocks_[i]->gradientDescent(*(remember_output[i - 1]), u);
         u = u_next;
     }
 
-    blocks[0]->gradientDescent(x_batch, u);
+    blocks_[0]->gradientDescent(x_batch, u);
 }
 
 }  // namespace bbx

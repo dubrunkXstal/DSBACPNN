@@ -58,7 +58,7 @@ private:
 inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::unique_ptr<Block> >()), loss(L2NormSquared{}) {
     Index in_dim;
     Index out_dim;
-    std::string activaton;
+    std::string activation;
     std::string line;
 
     std::getline(settings, line);
@@ -69,14 +69,14 @@ inline BlackBox::BlackBox(std::ifstream& settings) : blocks(std::vector<std::uni
     for (int i = 0; i < blocks_cnt; ++i) {
         getline(settings, line);
         ss = std::stringstream(line);
-        ss >> in_dim >> out_dim >> activaton;
+        ss >> in_dim >> out_dim >> activation;
 
-        if (activaton == "sigmoid") {
+        if (activation == "sigmoid") {
             blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Sigmoid{}));
-        } else if (activaton == "relu") {
+        } else if (activation == "relu") {
             blocks.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu{}));
         } else {
-            throw std::runtime_error("BlackBox::BlackBox(): Specified activaton function for the block is unknown.");
+            throw std::runtime_error("BlackBox::BlackBox(): Specified activation function for the block is unknown.");
         }
     }
 }

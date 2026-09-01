@@ -87,7 +87,8 @@ inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : lo
             std::make_unique<Block>(
                 config.input_dimension,
                 config.output_dimension,
-                config.activation_function
+                config.activation_function,
+                config.optimizer
             )
         );
     }

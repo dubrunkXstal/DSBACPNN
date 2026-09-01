@@ -1,6 +1,8 @@
 #pragma once
 
 #include <bbx/activationfunctions/AnyActivationFunction.hpp>
+#include <bbx/optimizers/AnyOptimizer.hpp>
+#include <bbx/optimizers/Optimizers.hpp>
 #include <bbx/types.hpp>
 
 namespace bbx {
@@ -9,18 +11,22 @@ struct BlockConfig {
     Index input_dimension;
     Index output_dimension;
     AnyActivation activation_function;
-};
+    AnyOptimizer optimizer;
 
-inline constexpr double gradient_step = 0.01;
+    BlockConfig(Index input_dimension, Index output_dimension, const AnyActivation& activation_function, const AnyOptimizer& optimizer = VanillaDescent{})
+        : input_dimension(input_dimension), output_dimension(output_dimension), activation_function(activation_function), optimizer(optimizer) {}
+};
 
 class Block {
 public:
-    Block(Index in_dim, Index out_dim, const AnyActivation& sigma)
+    Block(Index in_dim, Index out_dim, const AnyActivation& sigma, const AnyOptimizer& optimizer = VanillaDescent{})
       : in_dim(in_dim),
         out_dim(out_dim),
         A(Matrix::Random(out_dim, in_dim)),
         b(Vector::Random(out_dim)),
-        sigma(sigma) {}
+        sigma(sigma),
+        A_optimizer(optimizer),
+        b_optimizer(optimizer) {}
 
     Vector evaluate(const Vector& x) const
     {
@@ -74,14 +80,14 @@ public:
 
     void gradientDescent(const Vector& x, const RowVector& u)
     {
-        A -= grad_A(x, u) * gradient_step;
-        b -= grad_b(x, u) * gradient_step;
+        A += A_optimizer.computeUpdate(grad_A(x, u));
+        b += b_optimizer.computeUpdate(grad_b(x, u));
     }
 
     void gradientDescent(const Matrix& x_batch, const Matrix& u_batch)
     {
-        A -= grad_A(x_batch, u_batch) * gradient_step;
-        b -= grad_b(x_batch, u_batch) * gradient_step;
+        A += A_optimizer.computeUpdate(grad_A(x_batch, u_batch));
+        b += b_optimizer.computeUpdate(grad_b(x_batch, u_batch));
     }
 
     RowVector propogateBack(const Vector& x, const RowVector& u) const
@@ -108,6 +114,8 @@ private:
     Matrix A;
     Vector b;
     AnyActivation sigma;
+    AnyOptimizer A_optimizer;
+    AnyOptimizer b_optimizer;
 };
 
 }  // namespace bbx

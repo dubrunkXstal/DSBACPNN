@@ -47,6 +47,12 @@ public:
         return blocks.size();
     }
 
+    void setOptimizer(const AnyOptimizer& optimizer, std::vector<int> blocks_idx) {
+        for (int& id : blocks_idx) {
+            blocks[id]->setOptimizer(optimizer);
+        }
+    }
+
 private:
     std::vector<std::unique_ptr<Block> > blocks;
     AnyLoss loss;

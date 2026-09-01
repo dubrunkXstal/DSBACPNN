@@ -108,6 +108,12 @@ public:
         return Delta.transpose() * A;
     }
 
+    void setOptimizer(const AnyOptimizer& optimizer)
+    {
+        A_optimizer = optimizer;
+        b_optimizer = optimizer;
+    }
+
 private:
     Index in_dim;
     Index out_dim;

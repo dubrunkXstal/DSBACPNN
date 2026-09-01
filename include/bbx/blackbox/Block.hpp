@@ -20,7 +20,7 @@ public:
         out_dim(out_dim),
         A(Matrix::Random(out_dim, in_dim)),
         b(Vector::Random(out_dim)),
-        sigma(std::move(sigma)) {}
+        sigma(sigma) {}
 
     Vector evaluate(const Vector& x) const
     {

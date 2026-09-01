@@ -1,14 +1,43 @@
+# Integration tests
+
 add_executable(
-    bbx_tests
-    test_mnist.cpp
+    bbx_integration_tests
+    integration/test_mnist.cpp
 )
 
 target_link_libraries(
-    bbx_tests
+    bbx_integration_tests
     PRIVATE
         bbx::bbx
         Catch2::Catch2WithMain
 )
 
 include(Catch)
-catch_discover_tests(bbx_tests)
+
+catch_discover_tests(
+    bbx_integration_tests
+    TEST_PREFIX "integration: "
+    PROPERTIES
+        LABELS "integration"
+)
+
+# Unit tests
+
+# add_executable(
+#     bbx_unit_tests
+#     ...
+# )
+
+# target_link_libraries(
+#     bbx_unit_tests
+#     PRIVATE
+#         bbx::bbx
+#         Catch2::Catch2WithMain
+# )
+
+# catch_discover_tests(
+#     bbx_unit_tests
+#     TEST_PREFIX "unit: "
+#     PROPERTIES
+#         LABELS "unit"
+# )

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
 #include <bbx/types.hpp>
+#include <memory>
 
 namespace bbx {
 
 class AnyOptimizer {
-private:
+   private:
     struct Concept {
         virtual ~Concept() = default;
 
@@ -15,34 +15,26 @@ private:
         virtual std::unique_ptr<Concept> clone() const = 0;
     };
 
-    template<class T>
+    template <class T>
     struct Model final : Concept {
         T object;
 
         explicit Model(T value) : object(std::move(value)) {}
 
-        Matrix computeUpdate(const Matrix& gradient) override
-        {
-            return object.computeUpdate(gradient);
-        }
+        Matrix computeUpdate(const Matrix& gradient) override { return object.computeUpdate(gradient); }
 
-        std::unique_ptr<Concept> clone() const override
-        {
-            return std::make_unique<Model<T> >(object);
-        }
+        std::unique_ptr<Concept> clone() const override { return std::make_unique<Model<T> >(object); }
     };
 
-public:
+   public:
     AnyOptimizer() = default;
 
-    template<class T>
+    template <class T>
     AnyOptimizer(T value) : object_(std::make_unique<Model<T> >(std::move(value))) {}
 
-    AnyOptimizer(const AnyOptimizer& other)
-        : object_(other.object_ ? other.object_->clone() : nullptr) {}
+    AnyOptimizer(const AnyOptimizer& other) : object_(other.object_ ? other.object_->clone() : nullptr) {}
 
-    AnyOptimizer& operator=(const AnyOptimizer& other)
-    {
+    AnyOptimizer& operator=(const AnyOptimizer& other) {
         if (this != &other) {
             object_ = other.object_ ? other.object_->clone() : nullptr;
         }
@@ -54,12 +46,9 @@ public:
 
     AnyOptimizer& operator=(AnyOptimizer&& other) noexcept = default;
 
-    Matrix computeUpdate(const Matrix& gradient)
-    {
-        return object_->computeUpdate(gradient);
-    }
+    Matrix computeUpdate(const Matrix& gradient) { return object_->computeUpdate(gradient); }
 
-private:
+   private:
     std::unique_ptr<Concept> object_;
 };
 

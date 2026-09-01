@@ -1,3 +1,5 @@
+#pragma once
+
 #include <bbx/types.hpp>
 
 namespace bbx {

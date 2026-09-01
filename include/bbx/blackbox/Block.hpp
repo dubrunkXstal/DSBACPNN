@@ -80,8 +80,8 @@ public:
 
     void gradientDescent(const Matrix& x_batch, const Matrix& u_batch)
     {
-        A -= (grad_A(x_batch, u_batch) / x_batch.cols()) * gradient_step;
-        b -= (grad_b(x_batch, u_batch) / x_batch.cols()) * gradient_step;
+        A -= grad_A(x_batch, u_batch) * gradient_step;
+        b -= grad_b(x_batch, u_batch) * gradient_step;
     }
 
     RowVector propogateBack(const Vector& x, const RowVector& u) const

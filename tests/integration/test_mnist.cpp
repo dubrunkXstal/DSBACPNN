@@ -42,13 +42,13 @@ TEST_CASE("MNIST", "[integration]")
     REQUIRE(bb.getBlocksCount() == 6);
 
     bb.loadTrainCSV(
-        "/Users/dobr.senuta/Files/KNAD/CourseProject/DSBACPNN/MNIST data/mini_mnist_train_processed.csv",
+        "",
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
     );
 
     double score = 0.0;
     score = bb.loadTestCSV(
-        "/Users/dobr.senuta/Files/KNAD/CourseProject/DSBACPNN/MNIST data/mini_mnist_test_processed.csv",
+        "",
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
         [](const bbx::Vector& x, const bbx::Vector& y) {
             bbx::Index x_argmax, y_argmax;
@@ -58,5 +58,5 @@ TEST_CASE("MNIST", "[integration]")
     });
 
     CAPTURE(score);
-    FAIL("Forcing failure to view captures");
+    FAIL("[SUCCESS] Forcing failure to view captures");
 }

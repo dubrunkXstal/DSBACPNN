@@ -148,6 +148,6 @@ inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch) {
     blocks[0]->gradientDescent(x_batch, u);
 }
 
-#include <bbx/load/LoadCSV.hpp>
-
 }  // namespace bbx
+
+#include <bbx/load/LoadCSV.hpp>

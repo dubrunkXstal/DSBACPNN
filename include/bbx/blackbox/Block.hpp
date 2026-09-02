@@ -79,6 +79,11 @@ class Block {
 
     Matrix propogateBack(const Matrix& x_batch, const Matrix& u_batch) const;
 
+    void setActivation(const AnyActivation sigma)
+    {
+        sigma_ = sigma;
+    }
+
     void setOptimizer(const AnyOptimizer& optimizer)
     {
         A_optimizer_ = optimizer;

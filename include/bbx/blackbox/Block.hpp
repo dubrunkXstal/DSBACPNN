@@ -1,6 +1,8 @@
 #pragma once
 
 #include <bbx/activationfunctions/AnyActivationFunction.hpp>
+#include <bbx/initializers/AnyInitializer.hpp>
+#include <bbx/initializers/Initializers.hpp>
 #include <bbx/optimizers/AnyOptimizer.hpp>
 #include <bbx/optimizers/Optimizers.hpp>
 #include <bbx/types.hpp>
@@ -12,24 +14,28 @@ struct BlockConfig {
     Index output_dimension;
     AnyActivation activation_function;
     AnyOptimizer optimizer;
+    AnyInitializer initializer;
 
     BlockConfig(Index input_dimension, Index output_dimension, const AnyActivation& activation_function,
-                const AnyOptimizer& optimizer = VanillaDescent{})
+                const AnyOptimizer& optimizer = VanillaDescent{},
+                const AnyInitializer& initializer = GlorotUniform{})
         : input_dimension(input_dimension),
           output_dimension(output_dimension),
           activation_function(activation_function),
-          optimizer(optimizer)
+          optimizer(optimizer),
+          initializer(initializer)
     {}
 };
 
 class Block {
    public:
     Block(Index input_dimension, Index output_dimension, const AnyActivation& sigma,
-          const AnyOptimizer& optimizer = VanillaDescent{})
+          const AnyOptimizer& optimizer = VanillaDescent{},
+          const AnyInitializer& initializer = GlorotUniform{})
         : input_dimension_(input_dimension),
           output_dimension_(output_dimension),
-          A_(Matrix::Random(output_dimension, input_dimension)),
-          b_(Vector::Random(output_dimension)),
+          A_(initializer.generate(output_dimension, input_dimension)),
+          b_(Vector::Zero(output_dimension)),
           sigma_(sigma),
           A_optimizer_(optimizer),
           b_optimizer_(optimizer)
@@ -78,6 +84,11 @@ class Block {
     }
 
     Matrix propogateBack(const Matrix& x_batch, const Matrix& u_batch) const;
+
+    void initializeWeights(const AnyInitializer& initializer)
+    {
+        A_ = initializer.generate(output_dimension_, input_dimension_);
+    }
 
     void setActivation(const AnyActivation sigma)
     {

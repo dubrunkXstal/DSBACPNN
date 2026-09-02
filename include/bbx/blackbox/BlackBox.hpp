@@ -62,6 +62,13 @@ class BlackBox {
         }
     }
 
+    void initializeWeights(const AnyInitializer& initializer, std::vector<int> blocks_idx)
+    {
+        for (int& id : blocks_idx) {
+            blocks_[id]->initializeWeights(initializer);
+        }
+    } 
+
    private:
     std::vector<std::unique_ptr<Block> > blocks_;
     AnyLoss loss_;
@@ -102,7 +109,8 @@ inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : lo
 {
     for (const auto& config : block_configs) {
         blocks_.emplace_back(std::make_unique<Block>(config.input_dimension, config.output_dimension,
-                                                     config.activation_function, config.optimizer));
+                                                     config.activation_function, config.optimizer,
+                                                     config.initializer));
     }
 }
 

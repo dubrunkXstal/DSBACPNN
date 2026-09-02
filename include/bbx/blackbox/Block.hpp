@@ -5,7 +5,7 @@
 #include <bbx/initializers/Initializers.hpp>
 #include <bbx/optimizers/AnyOptimizer.hpp>
 #include <bbx/optimizers/Optimizers.hpp>
-#include <bbx/types.hpp>
+#include <bbx/core/types.hpp>
 
 namespace bbx {
 

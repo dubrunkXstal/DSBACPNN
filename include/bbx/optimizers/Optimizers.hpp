@@ -1,7 +1,7 @@
 #pragma once
 
 #include <bbx/schedules/LearningRates.hpp>
-#include <bbx/types.hpp>
+#include <bbx/core/types.hpp>
 #include <cmath>
 
 namespace bbx {

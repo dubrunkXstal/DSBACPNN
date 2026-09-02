@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <bbx/types.hpp>
+#include <bbx/core/types.hpp>
 
 namespace bbx {
 

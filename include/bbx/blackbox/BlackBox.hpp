@@ -8,7 +8,7 @@
 #include <bbx/blackbox/Block.hpp>
 #include <bbx/lossfunctions/AnyLossFunction.hpp>
 #include <bbx/lossfunctions/LossFunctions.hpp>
-#include <bbx/types.hpp>
+#include <bbx/core/types.hpp>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>

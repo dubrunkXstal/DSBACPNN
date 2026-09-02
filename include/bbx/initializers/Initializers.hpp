@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bbx/types.hpp>
+#include <bbx/core/types.hpp>
 #include <cmath>
 #include <random>
 

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <bbx/types.hpp>
+#include <bbx/core/types.hpp>
 
 namespace bbx {
 

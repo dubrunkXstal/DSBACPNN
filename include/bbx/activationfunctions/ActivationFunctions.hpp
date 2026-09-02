@@ -6,23 +6,27 @@
 
 namespace bbx {
 
-struct Relu {
+class Linear {
+public:
+    Linear(double alpha = 1.0, double beta = 0.0) : alpha_(alpha), beta_(beta) {}
+
     double evaluate(const double x) const
     {
-        return x < 0 ? 0 : x;
+        return alpha_ * x + beta_;
     }
 
     double derivative(const double x) const
     {
-        return x < 0 ? 0 : 1;
+        return alpha_;
     }
 
-    Vector evaluate(const Vector& x) const;
-
-    Vector derivative(const Vector& x) const;
+private:
+    double alpha_;
+    double beta_;
 };
 
-struct Sigmoid {
+class Sigmoid {
+public:
     double evaluate(const double x) const
     {
         return 1 / (1 + exp(-x));
@@ -33,56 +37,180 @@ struct Sigmoid {
         double s = evaluate(x);
         return s * (1.0 - s);
     }
-
-    Vector evaluate(const Vector& x) const;
-
-    Vector derivative(const Vector& x) const;
 };
 
-// Implementation
-
-inline Vector Sigmoid::evaluate(const Vector& x) const
-{
-    Vector z = x;
-
-    for (double& i : z) {
-        i = evaluate(i);
+class HardSigmoid {
+public:
+    double evaluate(const double x) const
+    {
+        return x < -2.5 ? 0 : (x > 2.5 ? 1 : 0.2 * x + 0.5);
     }
 
-    return z;
-}
+    double derivative(const double x) const
+    {
+        return x < -2.5 ? 0 : (x > 2.5 ? 0 : 0.2);
+    }
+};
 
-inline Vector Sigmoid::derivative(const Vector& x) const
-{
-    Vector z = x;
+class ReLU {
+public:
+    ReLU(double alpha = 0.0, double max_value = 0.0, double treshold = 0.0) : alpha_(alpha), max_value_(max_value), treshold_(treshold) {}
 
-    for (double& i : z) {
-        i = derivative(i);
+    double evaluate(const double x) const
+    {
+        return alpha_ == 0 ? (x > 0 ? x : 0) : (x >= max_value_ ? x : alpha_ * (x - treshold_));
     }
 
-    return z;
-}
-
-inline Vector Relu::evaluate(const Vector& x) const
-{
-    Vector z = x;
-
-    for (double& i : z) {
-        i = evaluate(i);
+    double derivative(const double x) const
+    {
+        return alpha_ == 0 ? (x > 0 ? 1 : 0) : (x >= max_value_ ? 1 : alpha_);
     }
 
-    return z;
-}
+private:
+    double alpha_;
+    double max_value_;
+    double treshold_;
+};
 
-inline Vector Relu::derivative(const Vector& x) const
-{
-    Vector z = x;
+class LReLU {
+public:
+    LReLU(double alpha = 0.3) : alpha_(alpha) {}
 
-    for (double& i : z) {
-        i = derivative(i);
+    double evaluate(const double x) const
+    {
+        return x >= 0 ? x : alpha_ * x;
     }
 
-    return z;
-}
+    double derivative(const double x) const
+    {
+        return x >= 0 ? 1 : alpha_;
+    }
+
+private:
+    double alpha_;
+};
+
+class ELU {
+public:
+    ELU(double alpha = 1.0) : alpha_(alpha) {}
+
+    double evaluate(const double x) const
+    {
+        return x >= 0 ? x : alpha_ * (std::exp(x) - 1);
+    }
+
+    double derivative(const double x) const
+    {
+        return x >= 0 ? 1 : alpha_ * std::exp(x);
+    }
+
+private:
+    double alpha_;
+};
+
+class SELU {
+public:
+    SELU(double alpha = 1.67326324, double scale = 1.05070098) : alpha_(alpha), scale_(scale) {}
+
+    double evaluate(const double x) const
+    {
+        return x >= 0 ? scale_ * x : scale_ * alpha_ * (std::exp(x) - 1);
+    }
+
+    double derivative(const double x) const
+    {
+        return x >= 0 ? scale_ : scale_ * alpha_ * std::exp(x);
+    }
+
+private:
+    double alpha_;
+    double scale_;
+};
+
+class GELU {
+public:
+    double evaluate(const double x) const
+    {
+        return 0.5 * x * (1 + std::tanh(0.7978845608 * (x + 0.044715 * std::pow(x, 3))));
+    }
+
+    double derivative(const double x) const
+    {
+        double x_cube = std::pow(x, 3);
+        double tmp = std::cosh(0.0356074 * x + 0.797885 * x);
+        return 0.5 * std::tanh(0.0356774 * x_cube + 0.398942 * x)+(0.535161 * x_cube + 0.398942 * x) / (tmp * tmp) + 0.5;
+    }
+};
+
+class Exponential {
+public:
+    double evaluate(const double x) const
+    {
+        return std::exp(x);
+    }
+
+    double derivative(const double x) const
+    {
+        return std::exp(x);
+    }
+};
+
+class Swish {
+public:
+    Swish(double beta = 1.0) : beta_(beta) {}
+
+    double evaluate(const double x) const
+    {
+        return x / (1 + std::exp(-x * beta_));
+    }
+
+    double derivative(const double x) const
+    {
+        double tmp = std::exp(-x * beta_);
+        return tmp * (beta_ * x + tmp + 1) / std::pow(tmp + 1, 2);
+    }
+
+private:
+    double beta_;
+};
+
+class Softplus {
+public:
+    double evaluate(const double x) const
+    {
+        return std::log(std::exp(x) + 1);
+    }
+
+    double derivative(const double x) const
+    {
+        return std::exp(x) / (std::exp(x) + 1);
+    }
+};
+
+class Softsign {
+public:
+    double evaluate(const double x) const
+    {
+        return x / (std::abs(x) + 1); 
+    }
+
+    double derivative(const double x) const
+    {
+        return 1 / std::pow(std::abs(x) + 1, 2);
+    }
+};
+
+class Tanh {
+public:
+    double evaluate(const double x) const
+    {
+        return std::tanh(x);
+    }
+
+    double derivative(const double x) const
+    {
+        return 1 / std::pow(std::cosh(x), 2);
+    }
+};
 
 }  // namespace bbx

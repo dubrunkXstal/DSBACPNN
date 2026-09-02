@@ -54,22 +54,15 @@ public:
 
 class ReLU {
 public:
-    ReLU(double alpha = 0.0, double max_value = 0.0, double treshold = 0.0) : alpha_(alpha), max_value_(max_value), treshold_(treshold) {}
-
     double evaluate(const double x) const
     {
-        return alpha_ == 0 ? (x > 0 ? x : 0) : (x >= max_value_ ? x : alpha_ * (x - treshold_));
+        return x >= 0 ? x : 0;
     }
 
     double derivative(const double x) const
     {
-        return alpha_ == 0 ? (x > 0 ? 1 : 0) : (x >= max_value_ ? 1 : alpha_);
+        return x >= 0 ? 1 : 0;
     }
-
-private:
-    double alpha_;
-    double max_value_;
-    double treshold_;
 };
 
 class LReLU {
@@ -137,8 +130,9 @@ public:
     double derivative(const double x) const
     {
         double x_cube = std::pow(x, 3);
-        double tmp = std::cosh(0.0356074 * x + 0.797885 * x);
-        return 0.5 * std::tanh(0.0356774 * x_cube + 0.398942 * x)+(0.535161 * x_cube + 0.398942 * x) / (tmp * tmp) + 0.5;
+        double g = 0.0356074 * x_cube + 0.797885 * x;
+        double tmp = std::cosh(g);
+        return 0.5 * std::tanh(g) + (0.535161 * x_cube + 0.398942 * x) / (tmp * tmp) + 0.5;
     }
 };
 
@@ -166,8 +160,8 @@ public:
 
     double derivative(const double x) const
     {
-        double tmp = std::exp(-x * beta_);
-        return tmp * (beta_ * x + tmp + 1) / std::pow(tmp + 1, 2);
+        double s = std::exp(x * beta_);
+        return s * (beta_ * x + s + 1) / std::pow(s + 1, 2);
     }
 
 private:
@@ -178,12 +172,12 @@ class Softplus {
 public:
     double evaluate(const double x) const
     {
-        return std::log(std::exp(x) + 1);
+        return x >= 20 ? x : std::log(1 + std::exp(x));
     }
 
     double derivative(const double x) const
     {
-        return std::exp(x) / (std::exp(x) + 1);
+        return 1 / (1 + std::exp(-x));
     }
 };
 

@@ -8,16 +8,16 @@ namespace bbx {
 
 namespace detail {
 
-inline std::mt19937& global_rng()
+inline std::mt19937& globalRng()
 {
     static std::mt19937 gen{std::random_device{}()};
     return gen;
 }
 
-inline Matrix normal_random(Index rows, Index cols, double stddev)
+inline Matrix normalRandom(Index rows, Index cols, double stddev)
 {
     std::normal_distribution<double> dist(0.0, stddev);
-    return Matrix::NullaryExpr(rows, cols, [&]() { return dist(global_rng()); });
+    return Matrix::NullaryExpr(rows, cols, [&]() { return dist(globalRng()); });
 }
 
 }  // namespace detail
@@ -45,7 +45,7 @@ class GlorotNormal {
    public:
     Matrix generate(Index rows, Index cols) const
     {
-        return detail::normal_random(rows, cols, std::sqrt(2.0 / (cols + rows)));
+        return detail::normalRandom(rows, cols, std::sqrt(2.0 / (cols + rows)));
     }
 };
 
@@ -54,7 +54,7 @@ class HeNormal {
    public:
     Matrix generate(Index rows, Index cols) const
     {
-        return detail::normal_random(rows, cols, std::sqrt(2.0 / cols));
+        return detail::normalRandom(rows, cols, std::sqrt(2.0 / cols));
     }
 };
 
@@ -74,7 +74,7 @@ class LeCunNormal {
    public:
     Matrix generate(Index rows, Index cols) const
     {
-        return detail::normal_random(rows, cols, std::sqrt(1.0 / cols));
+        return detail::normalRandom(rows, cols, std::sqrt(1.0 / cols));
     }
 };
 

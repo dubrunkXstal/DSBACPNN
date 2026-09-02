@@ -48,7 +48,7 @@ class BlackBox {
         loss_ = loss_function;
     }
 
-    void setActivation(const anyActivation& sigma, std::vector<int> blocks_idx)
+    void setActivation(const AnyActivation& sigma, std::vector<int> blocks_idx)
     {
         for (int& id : blocks_idx) {
             blocks_[id]->setActivation(sigma);

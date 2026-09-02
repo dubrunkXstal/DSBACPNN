@@ -31,13 +31,15 @@ with open(INPUT, newline='') as fin, open(OUTPUT, 'w', newline='') as fout:
 TEST_CASE("MNIST", "[integration]")
 {
     bbx::BlackBox bb{
-        {784, 500, bbx::Sigmoid{}},
-        {500, 100, bbx::Sigmoid{}},
-        {100, 100, bbx::Relu{}},
-        {100, 200, bbx::Sigmoid{}},
-        {200, 100, bbx::Sigmoid{}},
-        {100, 10, bbx::Sigmoid{}}
+        {784, 500, bbx::SELU{}, bbx::Adam{}, bbx::LeCunNormal{}},
+        {500, 100, bbx::SELU{}, bbx::Adam{}, bbx::LeCunNormal{}},
+        {100, 100, bbx::SELU{}, bbx::Adam{}, bbx::LeCunNormal{}},
+        {100, 200, bbx::SELU{}, bbx::Adam{}, bbx::LeCunNormal{}},
+        {200, 100, bbx::SELU{}, bbx::Adam{}, bbx::LeCunNormal{}},
+        {100, 10, bbx::Sigmoid{}, bbx::Adam{}}
     };
+
+    bb.setLoss(bbx::BinaryCrossEntropy{});
 
     REQUIRE(bb.getBlocksCount() == 6);
 

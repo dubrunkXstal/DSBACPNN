@@ -5,7 +5,8 @@
 namespace bbx {
 
 inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx,
-                                   char delimiter, bool have_header, int batch_size) {
+                                   char delimiter, bool have_header, int batch_size)
+{
     if (!std::filesystem::exists(path)) {
         throw std::runtime_error("BlackBox::loadTrainCSV(): specified file not found.");
     }
@@ -114,7 +115,8 @@ inline void BlackBox::loadTrainCSV(const std::filesystem::path& path, std::vecto
 
 inline double BlackBox::loadTestCSV(const std::filesystem::path& path, std::vector<int> target_cols_idx,
                                     std::function<bool(const Vector&, const Vector&)> is_correct,
-                                    char delimiter, bool have_header) {
+                                    char delimiter, bool have_header)
+{
     if (!std::filesystem::exists(path)) {
         throw std::runtime_error("BlackBox::loadTestCSV(): specified file not found.");
     }

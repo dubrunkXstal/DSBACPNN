@@ -8,10 +8,11 @@ namespace bbx {
 
 class VanillaDescent {
    public:
-    explicit VanillaDescent(LRSchedule lr_schedule = ConstantLR{0.01})
-        : lr_schedule_(std::move(lr_schedule)) {}
+    explicit VanillaDescent(LRSchedule lr_schedule = ConstantLR{0.01}) : lr_schedule_(std::move(lr_schedule))
+    {}
 
-    Matrix computeUpdate(const Matrix& gradient) {
+    Matrix computeUpdate(const Matrix& gradient)
+    {
         Matrix delta = -lr_schedule_(iteration_) * gradient;
         ++iteration_;
         return delta;
@@ -25,7 +26,8 @@ class VanillaDescent {
 class MomentumDescent {
    public:
     explicit MomentumDescent(LRSchedule lr_schedule = ConstantLR{0.01}, double beta = 0.9)
-        : lr_schedule_(std::move(lr_schedule)), beta_(beta) {}
+        : lr_schedule_(std::move(lr_schedule)), beta_(beta)
+    {}
 
     Matrix computeUpdate(const Matrix& gradient);
 
@@ -40,7 +42,8 @@ class Adam {
    public:
     explicit Adam(LRSchedule lr_schedule = ConstantLR{0.001}, double beta1 = 0.9, double beta2 = 0.999,
                   double eps = 1e-8)
-        : lr_schedule_(std::move(lr_schedule)), beta1_(beta1), beta2_(beta2), eps_(eps) {}
+        : lr_schedule_(std::move(lr_schedule)), beta1_(beta1), beta2_(beta2), eps_(eps)
+    {}
 
     Matrix computeUpdate(const Matrix& gradient);
 
@@ -56,7 +59,8 @@ class Adam {
 
 // Implementation
 
-inline Matrix MomentumDescent::computeUpdate(const Matrix& gradient) {
+inline Matrix MomentumDescent::computeUpdate(const Matrix& gradient)
+{
     if (velocity_.size() == 0) {
         velocity_ = Matrix::Zero(gradient.rows(), gradient.cols());
     }
@@ -66,7 +70,8 @@ inline Matrix MomentumDescent::computeUpdate(const Matrix& gradient) {
     return -velocity_;
 }
 
-inline Matrix Adam::computeUpdate(const Matrix& gradient) {
+inline Matrix Adam::computeUpdate(const Matrix& gradient)
+{
     if (m_.size() == 0) {
         m_ = Matrix::Zero(gradient.rows(), gradient.cols());
         v_ = Matrix::Zero(gradient.rows(), gradient.cols());

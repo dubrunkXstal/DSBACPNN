@@ -6,14 +6,18 @@ namespace bbx {
 
 class L2NormSquared {
    public:
-    double distance(const Vector& z, const Vector& y) const { return pow((z - y).norm(), 2); }
+    double distance(const Vector& z, const Vector& y) const
+    {
+        return pow((z - y).norm(), 2);
+    }
 
     RowVector gradient(const Vector& z, const Vector& y) const;
 };
 
 // Implementation
 
-inline RowVector L2NormSquared::gradient(const Vector& z, const Vector& y) const {
+inline RowVector L2NormSquared::gradient(const Vector& z, const Vector& y) const
+{
     RowVector result(z.rows());
 
     for (int i = 0; i < z.rows(); ++i) {

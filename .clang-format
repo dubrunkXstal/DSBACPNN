@@ -1,3 +1,14 @@
 BasedOnStyle: Google
 IndentWidth: 4
 ColumnLimit: 110
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: false
+  AfterClass: false
+  AfterNamespace: false
+  SplitEmptyFunction: false
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty

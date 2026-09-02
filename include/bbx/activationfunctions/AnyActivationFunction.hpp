@@ -26,26 +26,43 @@ class AnyActivation {
 
         explicit Model(T value) : object(std::move(value)) {}
 
-        double evaluate(const double x) const override { return object.evaluate(x); }
+        double evaluate(const double x) const override
+        {
+            return object.evaluate(x);
+        }
 
-        double derivative(const double x) const override { return object.derivative(x); }
+        double derivative(const double x) const override
+        {
+            return object.derivative(x);
+        }
 
-        Vector evaluate(const Vector& x) const override { return object.evaluate(x); }
+        Vector evaluate(const Vector& x) const override
+        {
+            return object.evaluate(x);
+        }
 
-        Vector derivative(const Vector& x) const override { return object.derivative(x); }
+        Vector derivative(const Vector& x) const override
+        {
+            return object.derivative(x);
+        }
 
-        std::unique_ptr<Concept> clone() const override { return std::make_unique<Model<T> >(object); }
+        std::unique_ptr<Concept> clone() const override
+        {
+            return std::make_unique<Model<T> >(object);
+        }
     };
 
    public:
     AnyActivation() = default;
 
     template <class T>
-    AnyActivation(T value) : object_(std::make_unique<Model<T> >(std::move(value))) {}
+    AnyActivation(T value) : object_(std::make_unique<Model<T> >(std::move(value)))
+    {}
 
     AnyActivation(const AnyActivation& other) : object_(other.object_ ? other.object_->clone() : nullptr) {}
 
-    AnyActivation& operator=(const AnyActivation& other) {
+    AnyActivation& operator=(const AnyActivation& other)
+    {
         if (this != &other) {
             object_ = other.object_ ? other.object_->clone() : nullptr;
         }
@@ -57,13 +74,25 @@ class AnyActivation {
 
     AnyActivation& operator=(AnyActivation&& other) noexcept = default;
 
-    double evaluate(const double x) const { return object_->evaluate(x); }
+    double evaluate(const double x) const
+    {
+        return object_->evaluate(x);
+    }
 
-    double derivative(const double x) const { return object_->derivative(x); }
+    double derivative(const double x) const
+    {
+        return object_->derivative(x);
+    }
 
-    Vector evaluate(const Vector& x) const { return object_->evaluate(x); }
+    Vector evaluate(const Vector& x) const
+    {
+        return object_->evaluate(x);
+    }
 
-    Vector derivative(const Vector& x) const { return object_->derivative(x); }
+    Vector derivative(const Vector& x) const
+    {
+        return object_->derivative(x);
+    }
 
    private:
     std::unique_ptr<Concept> object_;

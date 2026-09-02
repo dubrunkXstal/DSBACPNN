@@ -38,11 +38,18 @@ class BlackBox {
                        std::function<bool(const Vector&, const Vector&)> is_correct, char delimiter = ',',
                        bool have_header = false);
 
-    size_t getBlocksCount() const { return blocks_.size(); }
+    size_t getBlocksCount() const
+    {
+        return blocks_.size();
+    }
 
-    void setLoss(AnyLoss loss_function) { loss_ = loss_function; }
+    void setLoss(AnyLoss loss_function)
+    {
+        loss_ = loss_function;
+    }
 
-    void setOptimizer(const AnyOptimizer& optimizer, std::vector<int> blocks_idx) {
+    void setOptimizer(const AnyOptimizer& optimizer, std::vector<int> blocks_idx)
+    {
         for (int& id : blocks_idx) {
             blocks_[id]->setOptimizer(optimizer);
         }
@@ -56,7 +63,8 @@ class BlackBox {
 // Implementation
 
 inline BlackBox::BlackBox(std::ifstream& settings)
-    : blocks_(std::vector<std::unique_ptr<Block> >()), loss_(L2NormSquared{}) {
+    : blocks_(std::vector<std::unique_ptr<Block> >()), loss_(L2NormSquared{})
+{
     Index in_dim;
     Index out_dim;
     std::string activation;
@@ -83,14 +91,16 @@ inline BlackBox::BlackBox(std::ifstream& settings)
     }
 }
 
-inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : loss_(L2NormSquared{}) {
+inline BlackBox::BlackBox(std::initializer_list<BlockConfig> block_configs) : loss_(L2NormSquared{})
+{
     for (const auto& config : block_configs) {
         blocks_.emplace_back(std::make_unique<Block>(config.input_dimension, config.output_dimension,
                                                      config.activation_function, config.optimizer));
     }
 }
 
-inline Vector BlackBox::evaluate(const Vector& x) const {
+inline Vector BlackBox::evaluate(const Vector& x) const
+{
     Vector result = x;
 
     for (int i = 0; i < getBlocksCount(); ++i) {
@@ -100,7 +110,8 @@ inline Vector BlackBox::evaluate(const Vector& x) const {
     return result;
 }
 
-inline void BlackBox::tuning(const Vector& x, const Vector& y) {
+inline void BlackBox::tuning(const Vector& x, const Vector& y)
+{
     std::vector<std::unique_ptr<Vector> > remember_output;
     remember_output.emplace_back(std::make_unique<Vector>(blocks_[0]->evaluate(x)));
 
@@ -120,7 +131,8 @@ inline void BlackBox::tuning(const Vector& x, const Vector& y) {
     blocks_[0]->gradientDescent(x, u);
 }
 
-inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch) {
+inline void BlackBox::tuning(const Matrix& x_batch, const Matrix& y_batch)
+{
     std::vector<std::unique_ptr<Matrix> > remember_output;
 
     remember_output.emplace_back(std::make_unique<Matrix>(blocks_[0]->evaluate(x_batch)));

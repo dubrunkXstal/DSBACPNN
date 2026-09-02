@@ -24,22 +24,33 @@ class AnyLoss {
 
         explicit Model(T value) : object(std::move(value)) {}
 
-        double distance(const Vector& z, const Vector& y) const override { return object.distance(z, y); }
+        double distance(const Vector& z, const Vector& y) const override
+        {
+            return object.distance(z, y);
+        }
 
-        RowVector gradient(const Vector& z, const Vector& y) const override { return object.gradient(z, y); }
+        RowVector gradient(const Vector& z, const Vector& y) const override
+        {
+            return object.gradient(z, y);
+        }
 
-        std::unique_ptr<Concept> clone() const override { return std::make_unique<Model<T> >(object); }
+        std::unique_ptr<Concept> clone() const override
+        {
+            return std::make_unique<Model<T> >(object);
+        }
     };
 
    public:
     AnyLoss() = default;
 
     template <class T>
-    AnyLoss(T value) : object_(std::make_unique<Model<T> >(std::move(value))) {}
+    AnyLoss(T value) : object_(std::make_unique<Model<T> >(std::move(value)))
+    {}
 
     AnyLoss(const AnyLoss& other) : object_(other.object_ ? other.object_->clone() : nullptr) {}
 
-    AnyLoss& operator=(const AnyLoss& other) {
+    AnyLoss& operator=(const AnyLoss& other)
+    {
         if (this != &other) {
             object_ = other.object_ ? other.object_->clone() : nullptr;
         }
@@ -51,9 +62,15 @@ class AnyLoss {
 
     AnyLoss& operator=(AnyLoss&& other) noexcept = default;
 
-    double distance(const Vector& z, const Vector& y) const { return object_->distance(z, y); }
+    double distance(const Vector& z, const Vector& y) const
+    {
+        return object_->distance(z, y);
+    }
 
-    RowVector gradient(const Vector& z, const Vector& y) const { return object_->gradient(z, y); }
+    RowVector gradient(const Vector& z, const Vector& y) const
+    {
+        return object_->gradient(z, y);
+    }
 
    private:
     std::unique_ptr<Concept> object_;

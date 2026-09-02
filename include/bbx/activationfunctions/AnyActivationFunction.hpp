@@ -14,9 +14,6 @@ class AnyActivation {
         virtual double evaluate(const double x) const = 0;
         virtual double derivative(const double x) const = 0;
 
-        virtual Vector evaluate(const Vector& x) const = 0;
-        virtual Vector derivative(const Vector& x) const = 0;
-
         virtual std::unique_ptr<Concept> clone() const = 0;
     };
 
@@ -32,16 +29,6 @@ class AnyActivation {
         }
 
         double derivative(const double x) const override
-        {
-            return object.derivative(x);
-        }
-
-        Vector evaluate(const Vector& x) const override
-        {
-            return object.evaluate(x);
-        }
-
-        Vector derivative(const Vector& x) const override
         {
             return object.derivative(x);
         }
@@ -86,12 +73,12 @@ class AnyActivation {
 
     Vector evaluate(const Vector& x) const
     {
-        return object_->evaluate(x);
+        return x.unaryExpr([this](double v) { return evaluate(v); });
     }
 
     Vector derivative(const Vector& x) const
     {
-        return object_->derivative(x);
+        return x.unaryExpr([this](double v) { return derivative(v); });
     }
 
    private:

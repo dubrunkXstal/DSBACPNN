@@ -90,7 +90,7 @@ inline BlackBox::BlackBox(std::ifstream& settings)
         if (activation == "sigmoid") {
             blocks_.emplace_back(std::make_unique<Block>(in_dim, out_dim, Sigmoid{}));
         } else if (activation == "relu") {
-            blocks_.emplace_back(std::make_unique<Block>(in_dim, out_dim, Relu{}));
+            blocks_.emplace_back(std::make_unique<Block>(in_dim, out_dim, ReLU{}));
         } else {
             throw std::runtime_error(
                 "BlackBox::BlackBox(): Specified activation function for the block is unknown.");

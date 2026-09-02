@@ -67,7 +67,7 @@ public:
 
 class LReLU {
 public:
-    LReLU(double alpha = 0.3) : alpha_(alpha) {}
+    LReLU(double alpha = 0.03) : alpha_(alpha) {}
 
     double evaluate(const double x) const
     {
@@ -132,7 +132,7 @@ public:
         double x_cube = std::pow(x, 3);
         double g = 0.0356074 * x_cube + 0.797885 * x;
         double tmp = std::cosh(g);
-        return 0.5 * std::tanh(g) + (0.535161 * x_cube + 0.398942 * x) / (tmp * tmp) + 0.5;
+        return 0.5 * std::tanh(g) + (0.053411 * x_cube + 0.398942 * x) / (tmp * tmp) + 0.5;
     }
 };
 
@@ -160,8 +160,8 @@ public:
 
     double derivative(const double x) const
     {
-        double s = std::exp(x * beta_);
-        return s * (beta_ * x + s + 1) / std::pow(s + 1, 2);
+        double sig = 1.0 / (1.0 + std::exp(-x * beta_));
+        return sig * (1.0 + x * beta_ * (1.0 - sig));
     }
 
 private:

@@ -3,6 +3,7 @@
 add_executable(
     bbx_integration_tests
     integration/test_mnist.cpp
+    integration/test_xor.cpp
 )
 
 target_link_libraries(

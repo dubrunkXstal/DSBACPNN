@@ -6,6 +6,7 @@ add_executable(
     integration/test_xor.cpp
     integration/test_sin_regression.cpp
     integration/test_overfit.cpp
+    integration/test_iris.cpp
 )
 
 target_link_libraries(
